@@ -12,6 +12,8 @@ import {
 import { createLogger } from '../utils/logger.js';
 import { analyzeTaskPlan } from './plan-analyzer.js';
 import { createRegistry } from './registry.js';
+import { defaultConfigGenerator } from '../modules/config-generator/index.js';
+import { defaultCredentialManager } from '../modules/credential-manager/index.js';
 
 const logger = createLogger('mcp-tools');
 
@@ -261,35 +263,113 @@ async function handleGetMCPIntegrationCode(args: any) {
 
 async function handleRequestAndStoreCredentials(args: any) {
   logger.info('Handling request_and_store_credentials request');
-  return {
-    content: [
-      {
-        type: 'text',
-        text: JSON.stringify({
-          status: 'pending',
-          stored_location: '',
-          credential_keys: [],
-          next_steps: 'Implementation pending'
-        })
-      }
-    ]
-  };
+  
+  try {
+    const { mcp_name, required_credentials } = args;
+    
+    if (!mcp_name || !required_credentials || !Array.isArray(required_credentials)) {
+      throw new Error('Invalid arguments: mcp_name and required_credentials are required');
+    }
+
+    // Convert to credential manager format
+    const credentialRequests = required_credentials.map((cred: any) => ({
+      key_name: cred.key_name,
+      description: cred.description,
+      is_optional: cred.is_optional || false,
+      get_key_url: cred.get_key_url
+    }));
+
+    // Handle credential requests using credential manager
+    const result = await defaultCredentialManager.handleCredentialRequests(credentialRequests);
+
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify({
+            status: result.status,
+            stored_location: result.stored_location,
+            credential_keys: result.credential_keys,
+            next_steps: result.next_steps
+          }, null, 2)
+        }
+      ]
+    };
+  } catch (error) {
+    logger.error('Error in request_and_store_credentials:', error);
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify({
+            status: 'failed',
+            stored_location: '',
+            credential_keys: [],
+            next_steps: `Error: ${error instanceof Error ? error.message : 'Unknown error'}`
+          }, null, 2)
+        }
+      ]
+    };
+  }
 }
 
 async function handleGenerateMCPConfig(args: any) {
   logger.info('Handling generate_mcp_config request');
-  return {
-    content: [
-      {
-        type: 'text',
-        text: JSON.stringify({
-          config_content: {},
-          file_path: '',
-          activation_command: ''
-        })
+  
+  try {
+    const { subtask_id, required_mcps, environment = 'custom' } = args;
+    
+    if (!subtask_id || !required_mcps || !Array.isArray(required_mcps)) {
+      throw new Error('Invalid arguments: subtask_id and required_mcps are required');
+    }
+
+    // Generate MCP configuration
+    const result = await defaultConfigGenerator.generateConfig({
+      subtask_id,
+      required_mcps,
+      environment,
+      options: {
+        backup_existing: true,
+        validate_credentials: true,
+        include_examples: true
       }
-    ]
-  };
+    });
+
+    if (!result.success) {
+      throw new Error(result.error || 'Failed to generate MCP configuration');
+    }
+
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify({
+            success: true,
+            config_content: result.config_content,
+            file_path: result.file_path,
+            activation_command: result.activation_command,
+            metadata: result.metadata
+          }, null, 2)
+        }
+      ]
+    };
+  } catch (error) {
+    logger.error('Error in generate_mcp_config:', error);
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify({
+            success: false,
+            error: error instanceof Error ? error.message : 'Unknown error',
+            config_content: {},
+            file_path: '',
+            activation_command: ''
+          }, null, 2)
+        }
+      ]
+    };
+  }
 }
 
 async function handleAttachMCPToSubtask(args: any) {
