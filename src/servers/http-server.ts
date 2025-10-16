@@ -11,7 +11,7 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
-import { createLogger } from './utils/logger.js';
+import { createLogger } from '../utils/logger.js';
 
 // Disable logging to avoid interfering with HTTP responses
 process.env.LOG_LEVEL = 'error';
@@ -41,7 +41,7 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Health check endpoint
-app.get('/health', (req, res) => {
+app.get('/health', (req: express.Request, res: express.Response) => {
   res.json({ 
     status: 'healthy', 
     timestamp: new Date().toISOString(),
@@ -51,7 +51,7 @@ app.get('/health', (req, res) => {
 });
 
 // API endpoints
-app.get('/api/tools', (req, res) => {
+app.get('/api/tools', (req: express.Request, res: express.Response) => {
   const tools = [
     {
       name: 'analyze_task_plan',
@@ -181,7 +181,7 @@ app.get('/api/tools', (req, res) => {
 });
 
 // MCP tool execution endpoint
-app.post('/api/tools/:toolName', async (req, res) => {
+app.post('/api/tools/:toolName', async (req: express.Request, res: express.Response) => {
   try {
     const { toolName } = req.params;
     const { arguments: args } = req.body;
@@ -246,11 +246,12 @@ app.post('/api/tools/:toolName', async (req, res) => {
         };
         break;
         
-      default:
-        return res.status(404).json({ 
-          error: `Tool '${toolName}' not found`,
-          available_tools: ['analyze_task_plan', 'discover_mcp_servers', 'get_mcp_integration_code', 'request_and_store_credentials', 'generate_mcp_config', 'attach_mcp_to_subtask', 'list_cached_mcps', 'search_mcp_registry']
-        });
+        default:
+          res.status(404).json({ 
+            error: `Tool '${toolName}' not found`,
+            available_tools: ['analyze_task_plan', 'discover_mcp_servers', 'get_mcp_integration_code', 'request_and_store_credentials', 'generate_mcp_config', 'attach_mcp_to_subtask', 'list_cached_mcps', 'search_mcp_registry']
+          });
+          return;
     }
 
     res.json({
@@ -260,7 +261,7 @@ app.post('/api/tools/:toolName', async (req, res) => {
       execution_time_ms: Math.floor(Math.random() * 100) + 50
     });
 
-  } catch (error) {
+  } catch (error: any) {
     logger.error('Tool execution error:', error);
     res.status(500).json({ 
       error: 'Internal server error',
@@ -270,7 +271,7 @@ app.post('/api/tools/:toolName', async (req, res) => {
 });
 
 // API documentation endpoint
-app.get('/api/docs', (req, res) => {
+app.get('/api/docs', (req: express.Request, res: express.Response) => {
   res.json({
     title: 'MCP Meta-Orchestrator API',
     version: '0.1.0',
@@ -310,7 +311,7 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
 });
 
 // 404 handler
-app.use('*', (req, res) => {
+app.use('*', (req: express.Request, res: express.Response) => {
   res.status(404).json({ 
     error: 'Endpoint not found',
     available_endpoints: ['/health', '/api/tools', '/api/docs']

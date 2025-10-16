@@ -1,7 +1,7 @@
 module.exports = {
   apps: [{
     name: 'mcp-meta-orchestrator',
-    script: 'dist/server.js',
+    script: 'dist/servers/http-server.js',
     instances: 1,
     autorestart: true,
     watch: false,

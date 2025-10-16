@@ -2,22 +2,22 @@
   "version": 2,
   "builds": [
     {
-      "src": "dist/server.js",
+      "src": "dist/servers/http-server.js",
       "use": "@vercel/node"
     }
   ],
   "routes": [
     {
       "src": "/health",
-      "dest": "dist/server.js"
+      "dest": "dist/servers/http-server.js"
     },
     {
       "src": "/api/(.*)",
-      "dest": "dist/server.js"
+      "dest": "dist/servers/http-server.js"
     },
     {
       "src": "/(.*)",
-      "dest": "dist/server.js"
+      "dest": "dist/servers/http-server.js"
     }
   ],
   "env": {

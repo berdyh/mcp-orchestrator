@@ -213,6 +213,215 @@ for (const subtask of analysis.detected_tools) {
 }
 ```
 
+## Remote Deployment
+
+The MCP Meta-Orchestrator can be deployed remotely to serve external AI platforms like Codex, ChatGPT, or any HTTP client.
+
+### Quick Start - Deploy to Vercel (Easiest)
+
+1. **Install Vercel CLI**
+   ```bash
+   npm i -g vercel
+   ```
+
+2. **Deploy**
+   ```bash
+   npm run build
+   vercel --prod
+   ```
+
+3. **Set Environment Variables**
+   In Vercel dashboard, add:
+   - `PERPLEXITY_API_KEY=your_api_key`
+   - `ENCRYPTION_KEY=your_32_char_key`
+
+4. **Test Your Deployment**
+   ```bash
+   curl https://your-app.vercel.app/health
+   curl https://your-app.vercel.app/api/tools
+   ```
+
+### Deploy to Railway
+
+1. Go to [Railway.app](https://railway.app)
+2. Connect your GitHub repository
+3. Set environment variables in Railway dashboard
+4. Railway will auto-deploy on git push
+
+### Deploy to VPS (DigitalOcean, Linode, AWS)
+
+1. **Server Setup**
+   ```bash
+   # Update system
+   sudo apt update && sudo apt upgrade -y
+   
+   # Install Node.js 18+
+   curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+   sudo apt-get install -y nodejs
+   
+   # Install PM2 for process management
+   sudo npm install -g pm2
+   ```
+
+2. **Deploy Application**
+   ```bash
+   # Clone repository
+   git clone https://github.com/your-username/mcp-meta-orchestrator.git
+   cd mcp-meta-orchestrator
+   
+   # Install dependencies and build
+   npm install
+   npm run build
+   
+   # Set up environment
+   cp env.example .env
+   nano .env  # Add your API keys
+   ```
+
+3. **Start with PM2**
+   ```bash
+   pm2 start ecosystem.config.js
+   pm2 save
+   pm2 startup
+   ```
+
+### Docker Deployment
+
+1. **Build and Run**
+   ```bash
+   docker build -t mcp-meta-orchestrator .
+   docker run -d \
+     --name mcp-orchestrator \
+     -p 3000:3000 \
+     -e PERPLEXITY_API_KEY=your_api_key \
+     -e ENCRYPTION_KEY=your_32_char_key \
+     mcp-meta-orchestrator
+   ```
+
+2. **Docker Compose**
+   ```bash
+   # Create .env file with your API keys
+   echo "PERPLEXITY_API_KEY=your_api_key" > .env
+   echo "ENCRYPTION_KEY=your_32_char_key" >> .env
+   
+   # Start with docker-compose
+   docker-compose up -d
+   ```
+
+### HTTP API Endpoints
+
+Once deployed, the server provides these HTTP endpoints:
+
+- `GET /health` - Health check
+- `GET /api/tools` - List all available MCP tools
+- `POST /api/tools/:toolName` - Execute a specific MCP tool
+- `GET /api/docs` - API documentation
+
+### Usage Examples
+
+**Health Check**
+```bash
+curl https://your-domain.com/health
+```
+
+**Analyze a Task**
+```bash
+curl -X POST https://your-domain.com/api/tools/analyze_task_plan \
+  -H "Content-Type: application/json" \
+  -d '{
+    "task_description": "Build a web scraper",
+    "task_list": [
+      {
+        "id": "scraper-1",
+        "description": "Scrape product data from e-commerce site",
+        "dependencies": []
+      }
+    ]
+  }'
+```
+
+**Discover MCP Servers**
+```bash
+curl -X POST https://your-domain.com/api/tools/discover_mcp_servers \
+  -H "Content-Type: application/json" \
+  -d '{
+    "tool_names": ["file-system", "web-search"],
+    "categories": ["development", "automation"],
+    "search_depth": "thorough"
+  }'
+```
+
+### Integration with AI Platforms
+
+Use the HTTP API endpoints in your AI platform's custom tools/plugins:
+
+```javascript
+// Example integration code
+const mcpOrchestrator = {
+  baseUrl: 'https://your-domain.com',
+  
+  async analyzeTask(taskDescription, taskList) {
+    const response = await fetch(`${this.baseUrl}/api/tools/analyze_task_plan`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        task_description: taskDescription,
+        task_list: taskList
+      })
+    });
+    return response.json();
+  },
+  
+  async discoverMCPs(toolNames, categories) {
+    const response = await fetch(`${this.baseUrl}/api/tools/discover_mcp_servers`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        tool_names: toolNames,
+        categories: categories,
+        search_depth: 'thorough'
+      })
+    });
+    return response.json();
+  }
+};
+```
+
+### Environment Variables
+
+Set these environment variables for production:
+
+```bash
+# API Keys
+PERPLEXITY_API_KEY=your_perplexity_api_key
+OPENAI_API_KEY=your_openai_api_key
+
+# Server Configuration
+NODE_ENV=production
+PORT=3000
+LOG_LEVEL=error
+
+# Security
+ENCRYPTION_KEY=your_32_character_encryption_key
+
+# CORS (optional)
+ALLOWED_ORIGINS=https://your-frontend.com,https://another-domain.com
+```
+
+### Monitoring
+
+**PM2 Monitoring**
+```bash
+pm2 monit
+pm2 logs
+```
+
+**Health Checks**
+```bash
+curl https://your-domain.com/health
+pm2 status
+```
+
 ## Contributing
 
 1. Fork the repository
