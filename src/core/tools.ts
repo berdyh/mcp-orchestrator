@@ -14,7 +14,7 @@ import { analyzeTaskPlan } from './plan-analyzer.js';
 import { createRegistry } from './registry.js';
 import { defaultConfigGenerator } from '../modules/config-generator/index.js';
 import { defaultCredentialManager } from '../modules/credential-manager/index.js';
-import { defaultDiscoveryEngine } from '../modules/discovery-engine/index.js';
+import { defaultDiscoveryEngine, defaultWebScraper } from '../modules/discovery-engine/index.js';
 
 const logger = createLogger('mcp-tools');
 
@@ -383,19 +383,146 @@ function extractTechnologiesFromTools(toolNames: string[], categories: string[])
 
 async function handleGetMCPIntegrationCode(args: any) {
   logger.info('Handling get_mcp_integration_code request');
-  return {
-    content: [
-      {
-        type: 'text',
-        text: JSON.stringify({
-          installation_command: '',
-          configuration_json: {},
-          setup_code: '',
-          verification_steps: []
-        })
+  
+  try {
+    const { mcp_identifier, documentation_url, target_environment = 'custom' } = args;
+    
+    if (!mcp_identifier || !documentation_url) {
+      throw new Error('mcp_identifier and documentation_url are required');
+    }
+
+    logger.info('Fetching MCP integration code', { 
+      mcp_identifier, 
+      documentation_url, 
+      target_environment 
+    });
+
+    // Scrape the documentation URL
+    const scrapedContent = await defaultWebScraper.scrapeUrl(documentation_url);
+    
+    if (!scrapedContent.success) {
+      throw new Error(`Failed to scrape documentation: ${scrapedContent.error}`);
+    }
+
+    // Extract integration information from scraped content
+    const integrationInfo = {
+      installation_command: extractInstallationCommand(scrapedContent),
+      configuration_json: extractConfigurationJson(scrapedContent, target_environment),
+      setup_code: extractSetupCode(scrapedContent),
+      verification_steps: extractVerificationSteps(scrapedContent),
+      additional_resources: {
+        installation_commands: scrapedContent.extractedData.installationCommands,
+        configuration_examples: scrapedContent.extractedData.configurationExamples,
+        setup_instructions: scrapedContent.extractedData.setupInstructions,
+        required_credentials: scrapedContent.extractedData.requiredCredentials,
+        code_examples: scrapedContent.extractedData.codeExamples,
+        troubleshooting: scrapedContent.extractedData.troubleshooting
+      },
+      metadata: {
+        source_url: documentation_url,
+        scraped_at: new Date().toISOString(),
+        content_type: scrapedContent.metadata.contentType,
+        content_size: scrapedContent.metadata.size
       }
-    ]
-  };
+    };
+
+    logger.info('Successfully extracted MCP integration code', {
+      mcp_identifier,
+      hasInstallationCommand: !!integrationInfo.installation_command,
+      hasConfiguration: !!integrationInfo.configuration_json,
+      hasSetupCode: !!integrationInfo.setup_code
+    });
+
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify(integrationInfo, null, 2)
+        }
+      ]
+    };
+
+  } catch (error) {
+    logger.error('Error in get_mcp_integration_code:', error);
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify({
+            error: 'Failed to get MCP integration code',
+            message: error instanceof Error ? error.message : 'Unknown error',
+            installation_command: '',
+            configuration_json: {},
+            setup_code: '',
+            verification_steps: []
+          }, null, 2)
+        }
+      ]
+    };
+  }
+}
+
+/**
+ * Helper functions to extract integration information from scraped content
+ */
+function extractInstallationCommand(scrapedContent: any): string {
+  const commands = scrapedContent.extractedData.installationCommands;
+  if (commands && commands.length > 0) {
+    // Return the first installation command found
+    return commands[0];
+  }
+  return '';
+}
+
+function extractConfigurationJson(scrapedContent: any, targetEnvironment: string): any {
+  const examples = scrapedContent.extractedData.configurationExamples;
+  if (examples && examples.length > 0) {
+    // Try to find a JSON configuration example
+    for (const example of examples) {
+      try {
+        const parsed = JSON.parse(example);
+        // Add environment-specific configuration
+        if (targetEnvironment === 'claude-desktop') {
+          return {
+            ...parsed,
+            mcpServers: {
+              [scrapedContent.title || 'mcp-server']: parsed
+            }
+          };
+        }
+        return parsed;
+      } catch {
+        // Not valid JSON, continue
+      }
+    }
+  }
+  return {};
+}
+
+function extractSetupCode(scrapedContent: any): string {
+  const codeExamples = scrapedContent.extractedData.codeExamples;
+  if (codeExamples && codeExamples.length > 0) {
+    // Return the first substantial code example
+    return codeExamples[0];
+  }
+  return '';
+}
+
+function extractVerificationSteps(scrapedContent: any): string[] {
+  const setupInstructions = scrapedContent.extractedData.setupInstructions;
+  const troubleshooting = scrapedContent.extractedData.troubleshooting;
+  
+  const steps: string[] = [];
+  
+  if (setupInstructions && setupInstructions.length > 0) {
+    steps.push(...setupInstructions);
+  }
+  
+  if (troubleshooting && troubleshooting.length > 0) {
+    steps.push('Troubleshooting:', ...troubleshooting);
+  }
+  
+  return steps;
 }
 
 async function handleRequestAndStoreCredentials(args: any) {
