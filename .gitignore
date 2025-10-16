@@ -111,3 +111,65 @@ Thumbs.db
 # MCP Hub specific
 .mcp-hub/
 *.mcp-config
+
+# Credential Manager - Security Critical Files
+# Never commit these files as they contain sensitive information
+credentials.json
+*.credentials
+*.creds
+**/credentials/
+**/.credentials/
+**/creds/
+**/.creds/
+
+# Encrypted credential files
+*.encrypted
+*.enc
+*.key
+*.pem
+*.p12
+*.pfx
+
+# Credential backup files
+*.credential.backup
+*.creds.backup
+credentials.backup.*
+
+# Temporary credential files
+*.tmp.cred
+*.temp.cred
+temp-credentials.*
+
+# Credential cache files
+*.credential.cache
+*.creds.cache
+credential-cache.*
+
+# Environment files with credentials
+.env.credentials
+.env.secrets
+.env.keys
+.env.tokens
+.env.production
+.env.staging
+.env.local.credentials
+
+# Key files and certificates
+*.private
+*.secret
+*.confidential
+private-*
+secret-*
+confidential-*
+
+# Credential storage directories
+credential-storage/
+credential-store/
+secure-storage/
+encrypted-storage/
+
+# Audit logs (may contain sensitive information)
+audit.log
+security.log
+credential-audit.log
+*.audit.log
