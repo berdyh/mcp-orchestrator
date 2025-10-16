@@ -16,12 +16,16 @@ import {
 import { createLogger } from './utils/logger.js';
 import { registerTools } from './core/tools.js';
 
-const logger = createLogger('mcp-meta-orchestrator');
+// Disable logging to avoid interfering with MCP protocol
+process.env.LOG_LEVEL = 'error';
+
+// Create logger that outputs to stderr to avoid interfering with MCP protocol
+const logger = createLogger('mcp-meta-orchestrator', { 
+  output: process.stderr 
+});
 
 async function main() {
   try {
-    logger.info('Starting MCP Meta-Orchestrator Server...');
-
     // Create MCP server
     const server = new Server({
       name: 'mcp-meta-orchestrator',
@@ -35,9 +39,6 @@ async function main() {
     const transport = new StdioServerTransport();
     await server.connect(transport);
 
-    logger.info('MCP Meta-Orchestrator Server started successfully');
-    logger.info('MCP Meta-Orchestrator Server ready');
-
   } catch (error) {
     logger.error('Failed to start MCP Meta-Orchestrator Server:', error);
     process.exit(1);
@@ -46,12 +47,10 @@ async function main() {
 
 // Handle graceful shutdown
 process.on('SIGINT', () => {
-  logger.info('Received SIGINT, shutting down gracefully...');
   process.exit(0);
 });
 
 process.on('SIGTERM', () => {
-  logger.info('Received SIGTERM, shutting down gracefully...');
   process.exit(0);
 });
 

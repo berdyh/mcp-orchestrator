@@ -47,8 +47,8 @@ The MCP Meta-Orchestrator automatically discovers, provisions, and attaches spec
 
 1. **Clone the repository**
    ```bash
-   git clone <repository-url>
-   cd mcp_for_planning
+   git clone https://github.com/berdyh/mcp-orchestrator
+   cd mcp-orchestrator
    ```
 
 2. **Install dependencies**

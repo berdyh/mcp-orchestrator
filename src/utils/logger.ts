@@ -14,13 +14,34 @@ export interface LogEntry {
   data?: any;
 }
 
+export interface LoggerOptions {
+  level?: LogLevel;
+  output?: NodeJS.WritableStream;
+}
+
 class Logger {
   private level: LogLevel;
   private module: string;
+  private output: NodeJS.WritableStream;
 
-  constructor(module: string, level: LogLevel = 'info') {
+  constructor(module: string, options: LogLevel | LoggerOptions = 'info') {
     this.module = module;
-    this.level = this.getLogLevelFromEnv(level);
+    
+    if (typeof options === 'string') {
+      this.level = this.getLogLevelFromEnv(options);
+      this.output = this.getOutputFromEnv();
+    } else {
+      this.level = this.getLogLevelFromEnv(options.level || 'info');
+      this.output = options.output || this.getOutputFromEnv();
+    }
+  }
+
+  private getOutputFromEnv(): NodeJS.WritableStream {
+    const logOutput = process.env.LOG_OUTPUT;
+    if (logOutput === 'stderr') {
+      return process.stderr;
+    }
+    return process.stdout;
   }
 
   private getLogLevelFromEnv(defaultLevel: LogLevel): LogLevel {
@@ -62,21 +83,8 @@ class Logger {
 
     const formattedMessage = this.formatMessage(level, message, data);
     
-    // Use appropriate console method based on level
-    switch (level) {
-      case 'debug':
-        console.debug(formattedMessage);
-        break;
-      case 'info':
-        console.info(formattedMessage);
-        break;
-      case 'warn':
-        console.warn(formattedMessage);
-        break;
-      case 'error':
-        console.error(formattedMessage);
-        break;
-    }
+    // Write to the configured output stream
+    this.output.write(formattedMessage + '\n');
   }
 
   debug(message: string, data?: any): void {
@@ -99,8 +107,8 @@ class Logger {
 /**
  * Creates a new logger instance for the specified module
  */
-export function createLogger(module: string, level?: LogLevel): Logger {
-  return new Logger(module, level);
+export function createLogger(module: string, options?: LogLevel | LoggerOptions): Logger {
+  return new Logger(module, options);
 }
 
 /**
