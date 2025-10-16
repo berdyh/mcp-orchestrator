@@ -84,6 +84,8 @@ export interface MCPDiscoveryResult {
   setup_instructions: string;
   required_credentials: string[];
   confidence_score: number;
+  category?: string;
+  last_updated?: string;
 }
 
 /**
