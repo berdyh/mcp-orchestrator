@@ -1,10 +1,10 @@
 # Enhanced Confidence Scoring System
 
-## 🎯 Overview
+## Overview
 
 The Enhanced Confidence Scoring System is a sophisticated, multi-factor algorithm that evaluates and ranks MCP (Model Context Protocol) discovery results based on comprehensive quality metrics, community adoption, maintenance status, and user feedback.
 
-## 🚀 Key Features
+## Key Features
 
 ### Comprehensive Scoring Factors
 - **Repository Health**: Stars, forks, recent activity, contributors, issue health
@@ -30,7 +30,7 @@ The Enhanced Confidence Scoring System is a sophisticated, multi-factor algorith
 - **Risk Assessment**: Highlights potential issues and concerns
 - **Learning Insights**: Provides historical context and similar case analysis
 
-## 📊 Scoring Categories
+## Scoring Categories
 
 ### High Confidence (0.8-1.0)
 - Well-maintained repositories with active development
@@ -53,7 +53,7 @@ The Enhanced Confidence Scoring System is a sophisticated, multi-factor algorith
 - Outdated or experimental status
 - Security or performance concerns
 
-## 🔧 Configuration
+## Configuration
 
 ### Basic Configuration
 ```typescript
@@ -102,7 +102,7 @@ const scorer = new ConfidenceScorer({
 });
 ```
 
-## 📈 Usage Examples
+## Usage Examples
 
 ### Basic Scoring
 ```typescript
@@ -187,7 +187,7 @@ The system automatically suggests weight adjustments based on:
 - **User Feedback**: Direct feedback on scoring accuracy
 - **Usage Patterns**: How different MCPs perform in practice
 
-## 🔍 Scoring Factors Explained
+## Scoring Factors Explained
 
 ### Repository Health (0.12 weight)
 - **Stars & Forks**: Community interest and adoption
@@ -227,7 +227,7 @@ The system automatically suggests weight adjustments based on:
 - **Optimization**: Performance optimizations
 - **Resource Usage**: Memory and CPU requirements
 
-## 🎯 Best Practices
+## Best Practices
 
 ### For High Confidence Results
 - Use for production applications
@@ -244,7 +244,7 @@ The system automatically suggests weight adjustments based on:
 - Verify security and maintenance status
 - Consider alternatives with higher confidence
 
-## 🔧 Integration
+## Integration
 
 ### With Discovery Engine
 ```typescript
@@ -277,7 +277,7 @@ for (const result of scoredResults) {
 }
 ```
 
-## 📊 Performance Considerations
+## Performance Considerations
 
 ### Scoring Performance
 - **Basic Scoring**: ~10-50ms per result
@@ -291,7 +291,7 @@ for (const result of scoredResults) {
 - **Prediction**: ~5-20ms per prediction
 - **Storage**: Minimal disk usage for learning data
 
-## 🚀 Future Enhancements
+## Future Enhancements
 
 ### Planned Features
 - **Real-time Metrics**: Live GitHub/NPM API integration

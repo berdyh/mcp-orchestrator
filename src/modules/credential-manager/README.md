@@ -6,14 +6,14 @@ The Credential Manager is a secure, encrypted credential storage system designed
 
 ## Security Features
 
-### 🔐 AES-256-GCM Encryption
+### AES-256-GCM Encryption
 - **Algorithm**: AES-256-GCM (Galois/Counter Mode)
 - **Key Derivation**: PBKDF2 with 100,000 iterations
 - **Salt Length**: 32 bytes (256 bits)
 - **IV**: 128-bit random initialization vector
 - **Authentication**: Built-in authentication tag prevents tampering
 
-### 🛡️ Multi-Layer Security
+### Multi-Layer Security
 1. **Encryption at Rest**: All credentials are encrypted before storage
 2. **Secure File Permissions**: Credential files use 600 permissions (owner read/write only)
 3. **Memory Protection**: Sensitive data is cleared from memory after use
@@ -177,14 +177,14 @@ if (result.status === 'success') {
 3. **Secure Storage**: Store encryption keys separately from encrypted data
 4. **Regular Rotation**: Rotate encryption keys periodically
 
-### 🛡️ File Security
+### File Security
 
 1. **Proper Permissions**: Always use 600 permissions for credential files
 2. **Secure Locations**: Store credentials in user home directory, not project root
 3. **Backup Security**: Encrypt backups of credential files
 4. **Access Control**: Limit access to credential storage directories
 
-### 🔍 Monitoring and Auditing
+### Monitoring and Auditing
 
 1. **Audit Logs**: Regularly review audit logs for suspicious activity
 2. **Access Monitoring**: Monitor credential access patterns

@@ -92,7 +92,7 @@ npm run docker:dev
 npm run docker:test
 ```
 
-## 🛠️ Available Tools
+## Available Tools
 
 The MCP Meta-Orchestrator provides 8 core tools:
 
