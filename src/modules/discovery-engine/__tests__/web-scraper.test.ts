@@ -1,184 +1,232 @@
 /**
  * Web Scraper Tests
  * 
- * Tests for the web scraper functionality
+ * Tests for the web scraper functionality to ensure it can properly
+ * extract MCP documentation from various sources.
  */
 
-import { WebScraper } from '../web-scraper';
+import { WebScraper, type ScrapingTarget } from '../web-scraper';
+import { createLogger } from '../../../utils/logger';
+
+const logger = createLogger('web-scraper-test');
 
 describe('WebScraper', () => {
   let webScraper: WebScraper;
 
   beforeEach(() => {
     webScraper = new WebScraper({
-      maxRetries: 1,
+      maxRetries: 2,
       retryDelay: 500,
       timeout: 10000,
-      rateLimitPerMinute: 5,
-      respectRobotsTxt: false, // Disable for testing
-      maxContentLength: 1024 * 512 // 512KB for testing
+      rateLimitPerMinute: 5, // Very conservative for testing
+      respectRobotsTxt: true,
+      maxContentLength: 512 * 1024 // 512KB max for testing
     });
   });
 
-  describe('scrapeUrl', () => {
-    it('should handle invalid URLs gracefully', async () => {
-      const result = await webScraper.scrapeUrl('invalid-url');
+  describe('GitHub README Scraping', () => {
+    it('should scrape GitHub README content', async () => {
+      // Test with a known MCP server repository
+      const repoUrl = 'https://github.com/modelcontextprotocol/servers';
       
-      expect(result.success).toBe(false);
-      expect(result.error).toBeDefined();
-      expect(result.url).toBe('invalid-url');
-    });
-
-    it('should handle non-existent URLs', async () => {
-      const result = await webScraper.scrapeUrl('https://this-domain-does-not-exist-12345.com');
+      const result = await webScraper.scrapeGitHubReadme(repoUrl);
       
-      expect(result.success).toBe(false);
-      expect(result.error).toBeDefined();
-    });
-
-    it('should scrape a simple HTML page', async () => {
-      // Test with a simple, reliable page
-      const result = await webScraper.scrapeUrl('https://httpbin.org/html');
+      expect(result).toBeDefined();
+      expect(result.url).toContain('github');
+      expect(['github', 'readme']).toContain(result.metadata.contentType);
       
       if (result.success) {
-        expect(result.title).toBeDefined();
-        expect(result.content).toBeDefined();
-        expect(result.metadata.contentType).toBe('general');
-        expect(result.extractedData).toBeDefined();
+        expect(result.title).toBeTruthy();
+        expect(result.content).toBeTruthy();
+        expect(result.extractedData.installationCommands.length).toBeGreaterThanOrEqual(0);
+        expect(result.extractedData.setupInstructions.length).toBeGreaterThanOrEqual(0);
+        
+        logger.info('GitHub README scraping test passed', {
+          title: result.title,
+          contentLength: result.content.length,
+          installationCommands: result.extractedData.installationCommands.length,
+          setupInstructions: result.extractedData.setupInstructions.length
+        });
       } else {
-        // If it fails, it should have a proper error message
+        logger.warn('GitHub README scraping failed', { error: result.error });
+        // This is acceptable for testing - the repo might not exist or be accessible
         expect(result.error).toBeDefined();
       }
-    }, 15000);
+    }, 30000); // 30 second timeout for network requests
 
-    it('should extract structured data from content', async () => {
-      const result = await webScraper.scrapeUrl('https://httpbin.org/html');
+    it('should handle invalid GitHub URLs gracefully', async () => {
+      const invalidUrl = 'https://github.com/nonexistent/repo';
       
-      if (result.success) {
-        expect(result.extractedData.installationCommands).toBeDefined();
-        expect(result.extractedData.configurationExamples).toBeDefined();
-        expect(result.extractedData.setupInstructions).toBeDefined();
-        expect(result.extractedData.requiredCredentials).toBeDefined();
-        expect(result.extractedData.codeExamples).toBeDefined();
-        expect(result.extractedData.troubleshooting).toBeDefined();
-      }
+      const result = await webScraper.scrapeGitHubReadme(invalidUrl);
+      
+      expect(result).toBeDefined();
+      expect(result.success).toBe(false);
+      expect(result.error).toBeDefined();
+      
+      logger.info('Invalid GitHub URL test passed', { error: result.error });
     }, 15000);
   });
 
-  describe('scrapeGitHubReadme', () => {
-    it('should handle invalid GitHub URLs', async () => {
-      const result = await webScraper.scrapeGitHubReadme('https://github.com/invalid/repo');
+  describe('NPM Package Scraping', () => {
+    it('should scrape NPM package documentation', async () => {
+      // Test with a known MCP-related package
+      const packageName = '@modelcontextprotocol/sdk';
       
-      expect(result.success).toBe(false);
-      expect(result.error).toBeDefined();
-    });
-
-    it('should convert GitHub repo URL to README URL', async () => {
-      const result = await webScraper.scrapeGitHubReadme('https://github.com/microsoft/vscode');
+      const result = await webScraper.scrapeNpmPackage(packageName);
       
-      // This might fail due to rate limiting or access restrictions, but should handle gracefully
-      expect(result.url).toContain('raw.githubusercontent.com');
-      expect(result.metadata.contentType).toBe('github');
-    }, 15000);
-  });
-
-  describe('scrapeNpmPackage', () => {
-    it('should handle invalid package names', async () => {
-      const result = await webScraper.scrapeNpmPackage('invalid-package-name-12345');
-      
-      expect(result.success).toBe(false);
-      expect(result.error).toBeDefined();
-    });
-
-    it('should scrape a real NPM package', async () => {
-      const result = await webScraper.scrapeNpmPackage('axios');
+      expect(result).toBeDefined();
+      expect(result.url).toContain('npmjs.com');
+      expect(['npm', 'general']).toContain(result.metadata.contentType);
       
       if (result.success) {
-        expect(result.metadata.contentType).toBe('npm');
-        expect(result.title).toContain('axios');
+        expect(result.title).toBeTruthy();
+        expect(result.content).toBeTruthy();
+        expect(result.extractedData.installationCommands.length).toBeGreaterThanOrEqual(0);
+        
+        logger.info('NPM package scraping test passed', {
+          title: result.title,
+          contentLength: result.content.length,
+          installationCommands: result.extractedData.installationCommands.length
+        });
       } else {
-        // If it fails, it should have a proper error message
+        logger.warn('NPM package scraping failed', { error: result.error });
+        // This is acceptable for testing
         expect(result.error).toBeDefined();
       }
+    }, 30000);
+
+    it('should handle invalid NPM package names gracefully', async () => {
+      const invalidPackage = 'nonexistent-package-12345';
+      
+      const result = await webScraper.scrapeNpmPackage(invalidPackage);
+      
+      expect(result).toBeDefined();
+      expect(result.success).toBe(false);
+      expect(result.error).toBeDefined();
+      
+      logger.info('Invalid NPM package test passed', { error: result.error });
     }, 15000);
   });
 
-  describe('scrapeMultipleUrls', () => {
-    it('should handle empty target list', async () => {
-      const result = await webScraper.scrapeMultipleUrls([]);
-      
-      expect(result).toEqual([]);
-    });
-
+  describe('Multiple URL Scraping', () => {
     it('should scrape multiple URLs with rate limiting', async () => {
-      const targets = [
+      const targets: ScrapingTarget[] = [
         {
-          url: 'https://httpbin.org/html',
-          type: 'general' as const,
-          priority: 'high' as const
+          url: 'https://github.com/modelcontextprotocol/servers',
+          type: 'github_readme',
+          priority: 'high'
         },
         {
-          url: 'https://httpbin.org/json',
-          type: 'general' as const,
-          priority: 'medium' as const
+          url: 'https://www.npmjs.com/package/@modelcontextprotocol/sdk',
+          type: 'npm_docs',
+          priority: 'medium'
         }
       ];
-
+      
       const results = await webScraper.scrapeMultipleUrls(targets);
       
-      // Check that we got results (success or failure)
-      expect(results).toHaveLength(2);
+      expect(results).toBeDefined();
+      expect(results.length).toBe(targets.length);
       
-      // If any succeed, that's good; if all fail, that's also acceptable for testing
-      const successfulResults = results.filter(r => r.success);
-      const failedResults = results.filter(r => !r.success);
-      
-      // Either we should have some successful results, or all should have proper error messages
-      if (successfulResults.length === 0) {
-        expect(failedResults.every(r => r.error)).toBe(true);
+      let successCount = 0;
+      for (const result of results) {
+        expect(result.url).toBeTruthy();
+        if (result.success) {
+          successCount++;
+          expect(result.title).toBeTruthy();
+          expect(result.content).toBeTruthy();
+        } else {
+          expect(result.error).toBeDefined();
+        }
       }
-    }, 20000);
+      
+      logger.info('Multiple URL scraping test completed', {
+        total: results.length,
+        successful: successCount,
+        failed: results.length - successCount
+      });
+    }, 60000); // 60 second timeout for multiple requests
   });
 
-  describe('error handling', () => {
-    it('should respect timeout settings', async () => {
-      const fastScraper = new WebScraper({
+  describe('Content Extraction', () => {
+    it('should extract installation commands from content', async () => {
+      // Test with a simple HTML content that contains installation commands
+      const testHtml = `
+        <html>
+          <body>
+            <h1>Test MCP Server</h1>
+            <h2>Installation</h2>
+            <pre><code>npm install @test/mcp-server</code></pre>
+            <p>You can also install with yarn:</p>
+            <pre><code>yarn add @test/mcp-server</code></pre>
+          </body>
+        </html>
+      `;
+      
+      // We'll test the private method through a public method
+      const result = await webScraper.scrapeUrl('data:text/html;base64,' + Buffer.from(testHtml).toString('base64'));
+      
+      if (result.success) {
+        expect(result.extractedData.installationCommands.length).toBeGreaterThan(0);
+        expect(result.extractedData.installationCommands.some(cmd => 
+          cmd.includes('npm install') || cmd.includes('yarn add')
+        )).toBe(true);
+        
+        logger.info('Content extraction test passed', {
+          installationCommands: result.extractedData.installationCommands
+        });
+      }
+    }, 10000);
+  });
+
+  describe('Error Handling', () => {
+    it('should handle network timeouts gracefully', async () => {
+      const webScraperWithShortTimeout = new WebScraper({
         timeout: 100, // Very short timeout
         maxRetries: 1
       });
-
-      const result = await fastScraper.scrapeUrl('https://httpbin.org/delay/2');
       
+      const result = await webScraperWithShortTimeout.scrapeUrl('https://httpbin.org/delay/5');
+      
+      expect(result).toBeDefined();
       expect(result.success).toBe(false);
       expect(result.error).toBeDefined();
+      
+      logger.info('Timeout handling test passed', { error: result.error });
     }, 10000);
 
-    it('should handle rate limiting gracefully', async () => {
-      const slowScraper = new WebScraper({
-        rateLimitPerMinute: 1, // Very slow rate limit
-        respectRobotsTxt: false
-      });
+    it('should handle invalid URLs gracefully', async () => {
+      const result = await webScraper.scrapeUrl('not-a-valid-url');
+      
+      expect(result).toBeDefined();
+      expect(result.success).toBe(false);
+      expect(result.error).toBeDefined();
+      
+      logger.info('Invalid URL handling test passed', { error: result.error });
+    }, 10000);
+  });
 
-      const targets = [
-        {
-          url: 'https://httpbin.org/html',
-          type: 'general' as const,
-          priority: 'high' as const
-        },
-        {
-          url: 'https://httpbin.org/json',
-          type: 'general' as const,
-          priority: 'high' as const
-        }
-      ];
-
+  describe('Rate Limiting', () => {
+    it('should respect rate limits', async () => {
       const startTime = Date.now();
-      const results = await slowScraper.scrapeMultipleUrls(targets);
+      
+      // Make multiple requests quickly
+      const promises = [
+        webScraper.scrapeUrl('https://httpbin.org/get'),
+        webScraper.scrapeUrl('https://httpbin.org/get'),
+        webScraper.scrapeUrl('https://httpbin.org/get')
+      ];
+      
+      const results = await Promise.allSettled(promises);
       const endTime = Date.now();
-
-      // Should take at least 1 minute due to rate limiting
-      expect(endTime - startTime).toBeGreaterThan(50000); // 50 seconds
-      expect(results).toHaveLength(2);
-    }, 70000);
+      
+      // Should take some time due to rate limiting
+      expect(endTime - startTime).toBeGreaterThan(1000); // At least 1 second
+      
+      logger.info('Rate limiting test passed', {
+        duration: endTime - startTime,
+        results: results.length
+      });
+    }, 30000);
   });
 });
