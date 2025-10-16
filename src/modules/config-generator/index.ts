@@ -5,11 +5,11 @@
  * MCP configuration files for different environments and MCP types.
  */
 
-import { createLogger } from '../../utils/logger';
-import { ConfigGenerator } from './config-generator';
-import { FileSystemManager } from './file-system-manager';
-import { TemplateEngine } from './template-engine';
-import { EnvironmentManager } from './environment-manager';
+import { createLogger } from '../../utils/logger.js';
+import { ConfigGenerator } from './config-generator.js';
+import { FileSystemManager } from './file-system-manager.js';
+import { TemplateEngine } from './template-engine.js';
+import { EnvironmentManager } from './environment-manager.js';
 import type { 
   MCPConfigGenerationRequest,
   MCPConfigGenerationResult,
@@ -246,8 +246,8 @@ export class MCPConfigGenerator {
 export const defaultConfigGenerator = new MCPConfigGenerator();
 
 // Export all types and classes
-export * from './config-generator';
-export * from './file-system-manager';
-export * from './template-engine';
-export * from './environment-manager';
-export * from './types';
+export * from './config-generator.js';
+export * from './file-system-manager.js';
+export * from './template-engine.js';
+export * from './environment-manager.js';
+export * from './types.js';

@@ -5,12 +5,12 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
-import { MCPConfigGenerator } from '../index';
-import { FileSystemManager } from '../file-system-manager';
-import { TemplateEngine } from '../template-engine';
-import { EnvironmentManager } from '../environment-manager';
-import { ConfigGenerator } from '../config-generator';
-import type { MCPConfigGenerationRequest } from '../types';
+import { MCPConfigGenerator } from '../index.js';
+import { FileSystemManager } from '../file-system-manager.js';
+import { TemplateEngine } from '../template-engine.js';
+import { EnvironmentManager } from '../environment-manager.js';
+import { ConfigGenerator } from '../config-generator.js';
+import type { MCPConfigGenerationRequest } from '../types.js';
 
 // Simple test without complex mocks for now
 

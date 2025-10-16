@@ -5,8 +5,8 @@
  * adaptive learning, comprehensive scoring factors, and explanation generation.
  */
 
-import { ConfidenceScorer } from '../confidence-scorer';
-import { MCPDiscoveryResult } from '../../../types/mcp';
+import { ConfidenceScorer } from '../confidence-scorer.js';
+import { MCPDiscoveryResult } from '../../../types/mcp.js';
 
 describe('Enhanced Confidence Scorer', () => {
   let scorer: ConfidenceScorer;

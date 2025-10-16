@@ -6,8 +6,8 @@ import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals
 import { promises as fs } from 'fs';
 import { join } from 'path';
 import { tmpdir } from 'os';
-import { MCPRegistry, createRegistry, createRegistryEntry, MCPRegistryEntrySchema } from '../registry';
-import { MCPRegistryEntry } from '../../types/mcp';
+import { MCPRegistry, createRegistry, createRegistryEntry, MCPRegistryEntrySchema } from '../registry.js';
+import { MCPRegistryEntry } from '../../types/mcp.js';
 
 // Mock the logger to avoid console output during tests
 jest.mock('../../utils/logger', () => ({

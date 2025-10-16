@@ -4,8 +4,8 @@
  * Comprehensive tests for the main credential manager functionality.
  */
 
-import { CredentialManager, CredentialManagerConfig, credentialUtils } from '../index';
-import { CredentialRequest, CredentialStorageResult } from '../../../types/credential';
+import { CredentialManager, CredentialManagerConfig, credentialUtils } from '../index.js';
+import { CredentialRequest, CredentialStorageResult } from '../../../types/credential.js';
 
 // Mock the prompter to avoid interactive prompts in tests
 jest.mock('../prompt', () => ({

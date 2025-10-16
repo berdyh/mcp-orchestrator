@@ -5,16 +5,16 @@
  * combining Perplexity API integration, response parsing, and confidence scoring.
  */
 
-import { createLogger } from '../../utils/logger';
-import type { MCPDiscoveryResult } from '../../types/mcp';
-import { PerplexityClient } from './perplexity-client';
-import { MCPParser } from './mcp-parser';
-import { ConfidenceScorer } from './confidence-scorer';
-import { RateLimiter } from './rate-limiter';
-import { CacheManager } from './cache-manager';
-import { FallbackManager } from './fallback-manager';
-import { QueryConstructor, type QueryContext, type ConstructedQuery } from './query-constructor';
-import { WebScraper, type ScrapedContent, type ScrapingTarget } from './web-scraper';
+import { createLogger } from '../../utils/logger.js';
+import type { MCPDiscoveryResult } from '../../types/mcp.js';
+import { PerplexityClient } from './perplexity-client.js';
+import { MCPParser } from './mcp-parser.js';
+import { ConfidenceScorer } from './confidence-scorer.js';
+import { RateLimiter } from './rate-limiter.js';
+import { CacheManager } from './cache-manager.js';
+import { FallbackManager } from './fallback-manager.js';
+import { QueryConstructor, type QueryContext, type ConstructedQuery } from './query-constructor.js';
+import { WebScraper, type ScrapedContent, type ScrapingTarget } from './web-scraper.js';
 
 const logger = createLogger('discovery-engine');
 
@@ -682,13 +682,13 @@ export const discoveryUtils = {
 };
 
 // Export all classes and types
-export * from './perplexity-client';
-export * from './mcp-parser';
-export * from './confidence-scorer';
-export * from './rate-limiter';
-export * from './cache-manager';
-export * from './fallback-manager';
-export * from './query-templates';
-export * from './query-constructor';
-export * from './web-scraper';
-export * from './setup-instruction-parser';
+export * from './perplexity-client.js';
+export * from './mcp-parser.js';
+export * from './confidence-scorer.js';
+export * from './rate-limiter.js';
+export * from './cache-manager.js';
+export * from './fallback-manager.js';
+export * from './query-templates.js';
+export * from './query-constructor.js';
+export * from './web-scraper.js';
+export * from './setup-instruction-parser.js';

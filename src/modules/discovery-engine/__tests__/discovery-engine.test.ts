@@ -5,14 +5,14 @@
  * including mocked API responses and end-to-end functionality tests.
  */
 
-import { DiscoveryEngine } from '../index';
-import { PerplexityClient } from '../perplexity-client';
-import { MCPParser } from '../mcp-parser';
-import { ConfidenceScorer } from '../confidence-scorer';
-import { RateLimiter } from '../rate-limiter';
-import { CacheManager } from '../cache-manager';
-import { FallbackManager } from '../fallback-manager';
-import type { MCPDiscoveryResult } from '../../../types/mcp';
+import { DiscoveryEngine } from '../index.js';
+import { PerplexityClient } from '../perplexity-client.js';
+import { MCPParser } from '../mcp-parser.js';
+import { ConfidenceScorer } from '../confidence-scorer.js';
+import { RateLimiter } from '../rate-limiter.js';
+import { CacheManager } from '../cache-manager.js';
+import { FallbackManager } from '../fallback-manager.js';
+import type { MCPDiscoveryResult } from '../../../types/mcp.js';
 
 // Mock implementations
 jest.mock('../perplexity-client');

@@ -7,8 +7,8 @@
 import { promises as fs } from 'fs';
 import { join } from 'path';
 import { homedir } from 'os';
-import { CredentialStorage, StorageOperationResult } from '../storage';
-import { CredentialStorageConfig, STORAGE_PRIORITY } from '../../../types/credential';
+import { CredentialStorage, StorageOperationResult } from '../storage.js';
+import { CredentialStorageConfig, STORAGE_PRIORITY } from '../../../types/credential.js';
 
 describe('CredentialStorage', () => {
   let storage: CredentialStorage;

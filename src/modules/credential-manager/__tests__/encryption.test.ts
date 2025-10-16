@@ -4,8 +4,8 @@
  * Comprehensive tests for AES-256 encryption and decryption functionality.
  */
 
-import { AES256Encryption, encryptionUtils, EncryptionResult, DecryptionInput } from '../encryption';
-import { DEFAULT_ENCRYPTION_CONFIG } from '../../../types/credential';
+import { AES256Encryption, encryptionUtils, EncryptionResult, DecryptionInput } from '../encryption.js';
+import { DEFAULT_ENCRYPTION_CONFIG } from '../../../types/credential.js';
 
 describe('AES256Encryption', () => {
   let encryption: AES256Encryption;

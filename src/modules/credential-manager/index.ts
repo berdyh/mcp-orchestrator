@@ -5,18 +5,18 @@
  * combining encryption, storage, and interactive prompting capabilities.
  */
 
-import { createLogger } from '../../utils/logger';
+import { createLogger } from '../../utils/logger.js';
 import type { 
   CredentialRequest, 
   CredentialStorageResult, 
   CredentialValidationResult,
   CredentialStorageConfig
-} from '../../types/credential';
-import { STORAGE_PRIORITY } from '../../types/credential';
-import type { StorageOperationResult } from './storage';
-import { CredentialStorage } from './storage';
-import type { PromptResult } from './prompt';
-import { CredentialPrompter } from './prompt';
+} from '../../types/credential.js';
+import { STORAGE_PRIORITY } from '../../types/credential.js';
+import type { StorageOperationResult } from './storage.js';
+import { CredentialStorage } from './storage.js';
+import type { PromptResult } from './prompt.js';
+import { CredentialPrompter } from './prompt.js';
 import { AES256Encryption, encryptionUtils } from './encryption.js';
 
 const logger = createLogger('credential-manager');

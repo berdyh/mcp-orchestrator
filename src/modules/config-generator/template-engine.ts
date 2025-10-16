@@ -5,13 +5,13 @@
  * supporting different MCP types and environments with customizable templates.
  */
 
-import { createLogger } from '../../utils/logger';
+import { createLogger } from '../../utils/logger.js';
 import type { 
   MCPConfigTemplate,
   TemplateContext,
   TemplateMetadata,
   MCPType
-} from './types';
+} from './types.js';
 
 const logger = createLogger('template-engine');
 

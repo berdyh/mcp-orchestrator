@@ -2,11 +2,11 @@
 
 A dynamic MCP (Model Context Protocol) discovery and orchestration system that intelligently connects agents with the right tools for each subtask.
 
-## 🎯 Overview
+## Overview
 
 The MCP Meta-Orchestrator automatically discovers, provisions, and attaches specific MCP servers to agentic coding subtasks based on the tools, libraries, and frameworks they require. It acts as a smart hub that analyzes your coding tasks and dynamically configures the appropriate MCP servers.
 
-## 🏗️ Architecture
+## Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────┐
@@ -35,7 +35,7 @@ The MCP Meta-Orchestrator automatically discovers, provisions, and attaches spec
 └─────────────────────────────────────────────────────────┘
 ```
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 
@@ -105,7 +105,7 @@ The MCP Meta-Orchestrator provides 8 core tools:
 7. **`list_cached_mcps`** - Lists cached MCP servers
 8. **`search_mcp_registry`** - Searches MCP registry
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 mcp_for_planning/
@@ -125,7 +125,7 @@ mcp_for_planning/
 └── scripts/               # Build and deployment scripts
 ```
 
-## 🔧 Configuration
+## Configuration
 
 ### Environment Variables
 
@@ -157,7 +157,7 @@ The server can be configured in your MCP client (e.g., Claude Desktop, Cursor):
 }
 ```
 
-## 🔐 Security
+## Security
 
 The MCP Meta-Orchestrator implements multiple security layers:
 
@@ -167,7 +167,7 @@ The MCP Meta-Orchestrator implements multiple security layers:
 - **Audit trail** for credential access
 - **Automatic .gitignore** entries for credential files
 
-## 🧪 Testing
+## Testing
 
 ```bash
 # Run all tests
@@ -183,7 +183,7 @@ npm test -- src/core
 npm run test:watch
 ```
 
-## 📊 Usage Example
+## Usage Example
 
 ```typescript
 // 1. Analyze a task plan
@@ -213,7 +213,7 @@ for (const subtask of analysis.detected_tools) {
 }
 ```
 
-## 🤝 Contributing
+## Contributing
 
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/amazing-feature`)
@@ -221,17 +221,17 @@ for (const subtask of analysis.detected_tools) {
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
-## 📝 License
+## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🆘 Support
+## Support
 
 - **Documentation**: Check the `README.md` files in each module
 - **Issues**: Report bugs and request features via GitHub Issues
 - **Discussions**: Join community discussions in GitHub Discussions
 
-## 🗺️ Roadmap
+## Roadmap
 
 - [ ] ML-based tool detection from code context
 - [ ] Community registry of verified MCPs

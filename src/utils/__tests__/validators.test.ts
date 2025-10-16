@@ -13,7 +13,7 @@ import {
   isValidCredentialKey,
   sanitizeString,
   validateAndSanitizeString
-} from '../validators';
+} from '../validators.js';
 
 describe('Validators', () => {
   describe('validate', () => {

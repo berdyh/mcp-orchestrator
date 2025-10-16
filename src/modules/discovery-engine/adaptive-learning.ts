@@ -5,7 +5,7 @@
  * based on user feedback, usage patterns, and success rates.
  */
 
-import { createLogger } from '../../utils/logger';
+import { createLogger } from '../../utils/logger.js';
 import { promises as fs } from 'fs';
 import { join, dirname } from 'path';
 import { homedir } from 'os';

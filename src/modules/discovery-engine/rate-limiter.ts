@@ -5,7 +5,7 @@
  * ensuring compliance with API rate limits and preventing abuse.
  */
 
-import { createLogger } from '../../utils/logger';
+import { createLogger } from '../../utils/logger.js';
 
 const logger = createLogger('rate-limiter');
 

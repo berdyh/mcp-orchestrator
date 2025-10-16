@@ -5,9 +5,9 @@
  * with the enhanced confidence scoring system.
  */
 
-import { DiscoveryEngine } from '../index';
-import { ConfidenceScorer } from '../confidence-scorer';
-import { MCPRegistry } from '../../core/registry';
+import { DiscoveryEngine } from '../index.js';
+import { ConfidenceScorer } from '../confidence-scorer.js';
+import { MCPRegistry } from '../../core/registry.js';
 
 describe('MCP Discovery Engine Integration', () => {
   let discoveryEngine: DiscoveryEngine;

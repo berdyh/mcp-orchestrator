@@ -5,7 +5,7 @@
  * including reading, writing, backing up, and managing configuration files.
  */
 
-import { createLogger } from '../../utils/logger';
+import { createLogger } from '../../utils/logger.js';
 import { promises as fs } from 'fs';
 import { join, dirname, basename, extname } from 'path';
 import { homedir } from 'os';
@@ -15,7 +15,7 @@ import type {
   BackupInfo,
   ConfigFileMetadata,
   EnvironmentConfig
-} from './types';
+} from './types.js';
 
 const logger = createLogger('file-system-manager');
 

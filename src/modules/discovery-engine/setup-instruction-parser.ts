@@ -6,8 +6,8 @@
  * NPM documentation, official docs, and code examples.
  */
 
-import { createLogger } from '../../utils/logger';
-import type { ScrapedContent } from './web-scraper';
+import { createLogger } from '../../utils/logger.js';
+import type { ScrapedContent } from './web-scraper.js';
 
 const logger = createLogger('setup-instruction-parser');
 
@@ -67,7 +67,7 @@ export interface StructuredSetupInstructions {
 /**
  * Parser configuration
  */
-export interface ParserConfig {
+export interface SetupParserConfig {
   minConfidenceScore?: number;
   enablePatternMatching?: boolean;
   enableCodeExtraction?: boolean;
@@ -89,10 +89,10 @@ export interface ParsingStrategy {
  * Setup instruction parser with multiple parsing strategies
  */
 export class SetupInstructionParser {
-  private config: ParserConfig;
+  private config: SetupParserConfig;
   private strategies: Map<string, ParsingStrategy>;
 
-  constructor(config: ParserConfig = {}) {
+  constructor(config: SetupParserConfig = {}) {
     this.config = {
       minConfidenceScore: 0.3,
       enablePatternMatching: true,
@@ -121,15 +121,12 @@ export class SetupInstructionParser {
       const result: StructuredSetupInstructions = {
         installation: {
           commands: [],
-          requirements: [],
-          packageManager: undefined,
-          version: undefined
+          requirements: []
         },
         configuration: {
           requiredFields: [],
           optionalFields: [],
-          examples: [],
-          schema: undefined
+          examples: []
         },
         credentials: [],
         examples: [],
@@ -215,9 +212,7 @@ export class SetupInstructionParser {
   private parseInstallationInfo(scrapedContent: ScrapedContent): StructuredSetupInstructions['installation'] {
     const installation: StructuredSetupInstructions['installation'] = {
       commands: [],
-      requirements: [],
-      packageManager: undefined,
-      version: undefined
+      requirements: []
     };
 
     // Extract from scraped data
@@ -291,8 +286,7 @@ export class SetupInstructionParser {
     const configuration: StructuredSetupInstructions['configuration'] = {
       requiredFields: [],
       optionalFields: [],
-      examples: [],
-      schema: undefined
+      examples: []
     };
 
     // Extract from scraped data
@@ -392,7 +386,7 @@ export class SetupInstructionParser {
       const matches = content.match(pattern);
       if (matches) {
         for (const match of matches) {
-          const key = match.split(/[:\s]+/)[0].trim();
+          const key = match.split(/[:\s]+/)[0]?.trim() || '';
           const description = match.split(/[:\s]+/).slice(1).join(' ').trim();
           
           if (!credentials.some(c => c.key === key)) {
@@ -464,7 +458,7 @@ export class SetupInstructionParser {
           const codeMatch = match.match(/```(\w+)?\n([\s\S]*?)```/);
           if (codeMatch) {
             const language = codeMatch[1] || 'text';
-            const code = codeMatch[2].trim();
+            const code = codeMatch[2]?.trim() || '';
             
             if (code.length > 20) { // Only include substantial code blocks
               examples.push({
@@ -595,8 +589,8 @@ export class SetupInstructionParser {
         for (const match of matches) {
           const parts = match.split(/\*\*Solution\*\*:\s*|Solution:\s*|Fix:\s*/);
           if (parts.length >= 2) {
-            const issue = parts[0].replace(/\*\*Issue\*\*:\s*|Issue:\s*|Problem:\s*/, '').trim();
-            const solution = parts[1].trim();
+            const issue = parts[0]?.replace(/\*\*Issue\*\*:\s*|Issue:\s*|Problem:\s*/, '').trim() || '';
+            const solution = parts[1]?.trim() || '';
             if (issue && solution) {
               troubleshooting.commonIssues.push({ issue, solution });
             }
@@ -617,8 +611,8 @@ export class SetupInstructionParser {
         for (const match of matches) {
           const parts = match.split(/A:\s*|Answer:\s*/);
           if (parts.length >= 2) {
-            const question = parts[0].replace(/Q:\s*|Question:\s*/, '').trim();
-            const answer = parts[1].trim();
+            const question = parts[0]?.replace(/Q:\s*|Question:\s*/, '').trim() || '';
+            const answer = parts[1]?.trim() || '';
             if (question && answer) {
               troubleshooting.faq.push({ question, answer });
             }

@@ -12,7 +12,7 @@ import {
   AttachedMCPSchema,
   MCPDiscoveryResultSchema,
   MCPIntegrationCodeSchema
-} from '../mcp';
+} from '../mcp.js';
 
 import {
   // Credential schemas
@@ -24,7 +24,7 @@ import {
   CredentialValidationResultSchema,
   EncryptionConfigSchema,
   SecurityAuditEntrySchema
-} from '../credential';
+} from '../credential.js';
 
 import {
   // Task schemas
@@ -35,7 +35,7 @@ import {
   SubtaskMCPMappingSchema,
   TaskPlanInputSchema,
   MCPAttachmentResultSchema
-} from '../task';
+} from '../task.js';
 
 describe('MCP Validation Schemas', () => {
   describe('CredentialRequirementSchema', () => {

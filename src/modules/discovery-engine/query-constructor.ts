@@ -6,8 +6,8 @@
  * search queries for the Perplexity API.
  */
 
-import { createLogger } from '../../utils/logger';
-import { defaultQueryRegistry, type QueryTemplate } from './query-templates';
+import { createLogger } from '../../utils/logger.js';
+import { defaultQueryRegistry, type QueryTemplate } from './query-templates.js';
 
 const logger = createLogger('query-constructor');
 

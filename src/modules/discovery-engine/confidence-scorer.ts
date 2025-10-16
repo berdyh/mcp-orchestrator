@@ -5,9 +5,9 @@
  * evaluating multiple factors to determine the reliability and quality of each result.
  */
 
-import { createLogger } from '../../utils/logger';
-import type { MCPDiscoveryResult } from '../../types/mcp';
-import { AdaptiveLearningSystem, createAdaptiveLearningSystem } from './adaptive-learning';
+import { createLogger } from '../../utils/logger.js';
+import type { MCPDiscoveryResult } from '../../types/mcp.js';
+import { AdaptiveLearningSystem, createAdaptiveLearningSystem } from './adaptive-learning.js';
 
 const logger = createLogger('confidence-scorer');
 
@@ -1167,7 +1167,7 @@ export class ConfidenceScorer {
     // NPM security
     if (npmMetrics?.hasSecurityAudit) score += 0.2;
     if (npmMetrics?.vulnerabilityCount === 0) score += 0.1;
-    else if (npmMetrics?.vulnerabilityCount > 0) score -= Math.min(npmMetrics.vulnerabilityCount / 5, 0.3);
+    else if (npmMetrics?.vulnerabilityCount && npmMetrics.vulnerabilityCount > 0) score -= Math.min(npmMetrics.vulnerabilityCount / 5, 0.3);
 
     // Credential handling
     if (result.required_credentials.length > 0) {

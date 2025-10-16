@@ -5,8 +5,8 @@
  * including repository URLs, npm packages, setup instructions, and required credentials.
  */
 
-import { createLogger } from '../../utils/logger';
-import type { MCPDiscoveryResult } from '../../types/mcp';
+import { createLogger } from '../../utils/logger.js';
+import type { MCPDiscoveryResult } from '../../types/mcp.js';
 
 const logger = createLogger('mcp-parser');
 

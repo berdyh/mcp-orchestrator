@@ -7,8 +7,8 @@ import {
   analyzeTaskPlan, 
   extractDependenciesFromPackageJson, 
   extractDependenciesFromRequirements 
-} from '../plan-analyzer';
-import { TaskPlanInput } from '../../types/task';
+} from '../plan-analyzer.js';
+import { TaskPlanInput } from '../../types/task.js';
 
 // Mock the logger to avoid console output during tests
 jest.mock('../../utils/logger', () => ({

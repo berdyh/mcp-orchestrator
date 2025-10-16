@@ -5,8 +5,8 @@
  * to ensure they work together properly.
  */
 
-import { DiscoveryEngine, type DiscoverySearchOptions } from '../index';
-import { createLogger } from '../../../utils/logger';
+import { DiscoveryEngine, type DiscoverySearchOptions } from '../index.js';
+import { createLogger } from '../../../utils/logger.js';
 
 const logger = createLogger('discovery-engine-integration-test');
 

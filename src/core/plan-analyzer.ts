@@ -5,14 +5,14 @@
  * It uses pattern matching, keyword detection, and context analysis to identify dependencies.
  */
 
-import { createLogger } from '../utils/logger';
+import { createLogger } from '../utils/logger.js';
 import type { 
   TaskPlanInput, 
   TaskAnalysisResult, 
   DetectedTool
-} from '../types/task';
-import { TaskPlanInputSchema } from '../types/task';
-import { validate } from '../utils/validators';
+} from '../types/task.js';
+import { TaskPlanInputSchema } from '../types/task.js';
+import { validate } from '../utils/validators.js';
 
 const logger = createLogger('plan-analyzer');
 

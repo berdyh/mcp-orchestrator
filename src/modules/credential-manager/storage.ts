@@ -8,15 +8,15 @@
 import { promises as fs } from 'fs';
 import { join, dirname } from 'path';
 import { homedir } from 'os';
-import { createLogger } from '../../utils/logger';
+import { createLogger } from '../../utils/logger.js';
 import type { 
   StoredCredential, 
   CredentialStorageConfig, 
   SecurityAuditEntry
-} from '../../types/credential';
-import { STORAGE_PRIORITY } from '../../types/credential';
-import type { EncryptionResult, DecryptionInput } from './encryption';
-import { AES256Encryption } from './encryption';
+} from '../../types/credential.js';
+import { STORAGE_PRIORITY } from '../../types/credential.js';
+import type { EncryptionResult, DecryptionInput } from './encryption.js';
+import { AES256Encryption } from './encryption.js';
 
 const logger = createLogger('credential-storage');
 

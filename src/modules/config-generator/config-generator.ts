@@ -5,14 +5,14 @@
  * combining multiple MCP configs, and validating configurations.
  */
 
-import { createLogger } from '../../utils/logger';
-import { createRegistry } from '../../core/registry';
-import type { MCPRegistryEntry } from '../../types/mcp';
+import { createLogger } from '../../utils/logger.js';
+import { createRegistry } from '../../core/registry.js';
+import type { MCPRegistryEntry } from '../../types/mcp.js';
 import type { 
   MCPConfigTemplate,
   ConfigValidationResult,
   MCPType
-} from './types';
+} from './types.js';
 
 const logger = createLogger('config-generator-core');
 

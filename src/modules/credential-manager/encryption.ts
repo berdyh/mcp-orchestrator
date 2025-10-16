@@ -5,11 +5,11 @@
  * for credential storage with proper key derivation using PBKDF2.
  */
 
-import { createHash, randomBytes, scrypt, createCipher, createDecipher } from 'crypto';
+import { createHash, randomBytes, scrypt, createCipheriv, createDecipheriv } from 'crypto';
 import { promisify } from 'util';
-import { createLogger } from '../../utils/logger';
-import type { EncryptionConfig } from '../../types/credential';
-import { DEFAULT_ENCRYPTION_CONFIG } from '../../types/credential';
+import { createLogger } from '../../utils/logger.js';
+import type { EncryptionConfig } from '../../types/credential.js';
+import { DEFAULT_ENCRYPTION_CONFIG } from '../../types/credential.js';
 
 const logger = createLogger('credential-encryption');
 const scryptAsync = promisify(scrypt);
@@ -97,13 +97,13 @@ export class AES256Encryption {
 
       // Generate random salt and IV
       const salt = this.generateSalt();
-      const iv = this.generateIV();
+      const iv = randomBytes(16);
 
       // Derive key from password and salt
       const key = await this.deriveKey(password, salt);
 
       // Create cipher
-      const cipher = createCipher('aes-256-gcm', key);
+      const cipher = createCipheriv('aes-256-gcm', key, iv);
       cipher.setAAD(Buffer.from('mcp-credential-manager', 'utf8'));
 
       // Encrypt the data
@@ -158,7 +158,7 @@ export class AES256Encryption {
       const key = await this.deriveKey(password, salt);
 
       // Create decipher
-      const decipher = createDecipher('aes-256-gcm', key);
+      const decipher = createDecipheriv('aes-256-gcm', key, iv);
       decipher.setAAD(Buffer.from('mcp-credential-manager', 'utf8'));
       decipher.setAuthTag(tag);
 

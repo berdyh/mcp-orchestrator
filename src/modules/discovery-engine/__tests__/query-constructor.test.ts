@@ -4,8 +4,8 @@
  * Comprehensive tests for the QueryConstructor class and its functionality.
  */
 
-import { QueryConstructor, queryConstructorUtils } from '../query-constructor';
-import type { QueryContext, ConstructedQuery } from '../query-constructor';
+import { QueryConstructor, queryConstructorUtils } from '../query-constructor.js';
+import type { QueryContext, ConstructedQuery } from '../query-constructor.js';
 
 describe('QueryConstructor', () => {
   let queryConstructor: QueryConstructor;

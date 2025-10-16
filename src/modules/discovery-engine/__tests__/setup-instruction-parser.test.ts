@@ -6,8 +6,8 @@
  */
 
 import { describe, it, expect, beforeEach } from '@jest/globals';
-import { SetupInstructionParser, type StructuredSetupInstructions } from '../setup-instruction-parser';
-import type { ScrapedContent } from '../web-scraper';
+import { SetupInstructionParser, type StructuredSetupInstructions } from '../setup-instruction-parser.js';
+import type { ScrapedContent } from '../web-scraper.js';
 
 describe('SetupInstructionParser', () => {
   let parser: SetupInstructionParser;

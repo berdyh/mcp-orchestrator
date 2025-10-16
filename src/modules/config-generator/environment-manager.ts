@@ -5,13 +5,13 @@
  * and provides environment-specific configuration and activation commands.
  */
 
-import { createLogger } from '../../utils/logger';
+import { createLogger } from '../../utils/logger.js';
 import { join } from 'path';
 import { homedir } from 'os';
 import type { 
   EnvironmentConfig,
   EnvironmentSpecificConfig
-} from './types';
+} from './types.js';
 
 const logger = createLogger('environment-manager');
 

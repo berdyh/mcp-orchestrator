@@ -5,8 +5,8 @@
  * improving performance and reducing API usage.
  */
 
-import { createLogger } from '../../utils/logger';
-import type { MCPDiscoveryResult } from '../../types/mcp';
+import { createLogger } from '../../utils/logger.js';
+import type { MCPDiscoveryResult } from '../../types/mcp.js';
 
 const logger = createLogger('cache-manager');
 

@@ -6,7 +6,7 @@
  */
 
 import axios, { type AxiosInstance, type AxiosResponse } from 'axios';
-import { createLogger } from '../../utils/logger';
+import { createLogger } from '../../utils/logger.js';
 
 const logger = createLogger('perplexity-client');
 

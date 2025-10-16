@@ -6,8 +6,8 @@
  */
 
 import { createInterface } from 'readline';
-import { createLogger } from '../../utils/logger';
-import type { CredentialRequest, CredentialValidationResult } from '../../types/credential';
+import { createLogger } from '../../utils/logger.js';
+import type { CredentialRequest, CredentialValidationResult } from '../../types/credential.js';
 import { AES256Encryption } from './encryption.js';
 
 const logger = createLogger('credential-prompt');

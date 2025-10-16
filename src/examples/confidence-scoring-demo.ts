@@ -5,8 +5,8 @@
  * with adaptive learning, detailed explanations, and real-world usage.
  */
 
-import { ConfidenceScorer } from '../modules/discovery-engine/confidence-scorer';
-import { MCPDiscoveryResult } from '../types/mcp';
+import { ConfidenceScorer } from '../modules/discovery-engine/confidence-scorer.js';
+import type { MCPDiscoveryResult } from '../types/mcp.js';
 
 async function demonstrateConfidenceScoring() {
   console.log('🚀 MCP Meta-Orchestrator - Confidence Scoring Demo\n');
@@ -85,6 +85,8 @@ async function demonstrateConfidenceScoring() {
 
   for (let i = 0; i < scoredResults.length; i++) {
     const result = scoredResults[i];
+    if (!result) continue;
+    
     const level = scorer.getConfidenceLevel(result.confidence_score);
     
     console.log(`\n${i + 1}. ${result.mcp_name}`);
@@ -101,6 +103,8 @@ async function demonstrateConfidenceScoring() {
 
   for (let i = 0; i < Math.min(2, scoredResults.length); i++) {
     const result = scoredResults[i];
+    if (!result) continue;
+    
     console.log(`\n📋 Analysis for ${result.mcp_name}:`);
     console.log('-'.repeat(50));
 
@@ -144,7 +148,7 @@ async function demonstrateConfidenceScoring() {
     mcpId: 'filesystem-mcp',
     mcpName: 'filesystem-mcp',
     originalQuery: 'filesystem and database operations',
-    predictedScore: scoredResults[0].confidence_score,
+    predictedScore: scoredResults[0]?.confidence_score || 0.5,
     actualScore: 0.9,
     success: true,
     usageDuration: 45,
@@ -186,11 +190,11 @@ async function demonstrateConfidenceScoring() {
   console.log('\n🔮 Enhanced Explanations with Learning Insights:\n');
 
   const enhancedExplanation = await scorer.getEnhancedConfidenceExplanation(
-    scoredResults[0],
+    scoredResults[0]!,
     'filesystem and database operations'
   );
 
-  console.log(`Enhanced Analysis for ${scoredResults[0].mcp_name}:`);
+  console.log(`Enhanced Analysis for ${scoredResults[0]?.mcp_name}:`);
   console.log(`  Predicted Success: ${enhancedExplanation.learningInsights.predictedSuccess.toFixed(3)}`);
   console.log(`  Confidence: ${enhancedExplanation.learningInsights.confidence.toFixed(3)}`);
   console.log(`  Similar Cases: ${enhancedExplanation.learningInsights.similarCases}`);

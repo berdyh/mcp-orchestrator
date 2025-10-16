@@ -2,7 +2,7 @@
  * Logger Tests
  */
 
-import { createLogger, Logger } from '../logger';
+import { createLogger, Logger } from '../logger.js';
 
 describe('Logger', () => {
   let logger: Logger;

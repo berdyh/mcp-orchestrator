@@ -5,8 +5,8 @@
  * extract MCP documentation from various sources.
  */
 
-import { WebScraper, type ScrapingTarget } from '../web-scraper';
-import { createLogger } from '../../../utils/logger';
+import { WebScraper, type ScrapingTarget } from '../web-scraper.js';
+import { createLogger } from '../../../utils/logger.js';
 
 const logger = createLogger('web-scraper-test');
 

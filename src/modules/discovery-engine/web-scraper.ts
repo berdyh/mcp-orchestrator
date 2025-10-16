@@ -7,8 +7,8 @@
 
 import axios, { type AxiosInstance } from 'axios';
 import * as cheerio from 'cheerio';
-import { createLogger } from '../../utils/logger';
-import { RateLimiter } from './rate-limiter';
+import { createLogger } from '../../utils/logger.js';
+import { RateLimiter } from './rate-limiter.js';
 
 const logger = createLogger('web-scraper');
 
