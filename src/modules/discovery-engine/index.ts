@@ -691,3 +691,4 @@ export * from './fallback-manager';
 export * from './query-templates';
 export * from './query-constructor';
 export * from './web-scraper';
+export * from './setup-instruction-parser';
