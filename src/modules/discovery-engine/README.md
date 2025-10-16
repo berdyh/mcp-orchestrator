@@ -1,510 +1,334 @@
-# Discovery Engine
+# Enhanced Confidence Scoring System
 
-The Discovery Engine is a comprehensive module for discovering Model Context Protocol (MCP) servers using the Perplexity API and intelligent fallback mechanisms. It provides automated discovery, parsing, confidence scoring, and caching capabilities.
+## 🎯 Overview
 
-## Overview
+The Enhanced Confidence Scoring System is a sophisticated, multi-factor algorithm that evaluates and ranks MCP (Model Context Protocol) discovery results based on comprehensive quality metrics, community adoption, maintenance status, and user feedback.
 
-The Discovery Engine consists of several interconnected components:
+## 🚀 Key Features
 
-- **PerplexityClient**: Handles API communication with retry logic
-- **MCPParser**: Extracts MCP metadata from API responses
-- **ConfidenceScorer**: Evaluates result quality and reliability
-- **RateLimiter**: Manages API rate limits and request throttling
-- **CacheManager**: Caches responses for improved performance
-- **FallbackManager**: Provides alternative discovery methods
-- **QueryTemplates**: Predefined search patterns for different use cases
+### Comprehensive Scoring Factors
+- **Repository Health**: Stars, forks, recent activity, contributors, issue health
+- **NPM Package Health**: Downloads, versions, dependencies, security audits
+- **Documentation Quality**: Completeness, examples, API docs, tutorials
+- **Community Adoption**: GitHub stars, NPM downloads, social mentions
+- **Maintenance Status**: Recent commits, version updates, active development
+- **Technical Quality**: Code structure, testing, CI/CD, best practices
+- **Security Score**: Vulnerability assessment, security policies, audit status
+- **Performance Score**: Bundle size, dependencies, optimization
 
-## Features
+### Adaptive Learning System
+- **User Feedback Integration**: Learns from actual usage outcomes
+- **Weight Adjustment**: Automatically adjusts scoring weights based on success rates
+- **Bias Correction**: Identifies and corrects scoring biases
+- **Success Prediction**: Predicts success probability based on historical data
+- **Continuous Improvement**: Gets better over time with more data
 
-### 🔍 Intelligent Discovery
-- **Perplexity API Integration**: Uses Perplexity's online search capabilities to find MCP servers
-- **Query Templates**: Predefined search patterns for different technologies and use cases
-- **Smart Parsing**: Extracts repository URLs, npm packages, setup instructions, and credentials
-- **Confidence Scoring**: Multi-factor algorithm to evaluate result quality
+### Detailed Explanations
+- **Factor Breakdown**: Shows how each factor contributes to the score
+- **Strengths & Weaknesses**: Identifies what makes an MCP good or problematic
+- **Recommendations**: Suggests improvements for low-confidence results
+- **Risk Assessment**: Highlights potential issues and concerns
+- **Learning Insights**: Provides historical context and similar case analysis
 
-### 🚀 Performance & Reliability
-- **Rate Limiting**: Respects API limits with configurable throttling
-- **Caching**: In-memory caching with TTL and LRU eviction
-- **Retry Logic**: Exponential backoff for failed requests
-- **Fallback Mechanisms**: Predefined registry when API fails
+## 📊 Scoring Categories
 
-### 🛠️ Developer Experience
-- **TypeScript Support**: Full type safety and IntelliSense
-- **Comprehensive Testing**: Unit and integration tests with mocks
-- **Detailed Logging**: Structured logging for debugging and monitoring
-- **Flexible Configuration**: Customizable settings for all components
+### High Confidence (0.8-1.0)
+- Well-maintained repositories with active development
+- Comprehensive documentation and examples
+- Strong community adoption and engagement
+- Recent updates and security audits
+- Low vulnerability count and good performance
 
-## Quick Start
+### Medium Confidence (0.5-0.8)
+- Good repository health with some limitations
+- Adequate documentation with room for improvement
+- Moderate community adoption
+- Regular but not frequent updates
+- Some security considerations
 
-### Basic Usage
+### Low Confidence (0.0-0.5)
+- Limited repository activity or maintenance
+- Insufficient documentation
+- Low community adoption
+- Outdated or experimental status
+- Security or performance concerns
 
+## 🔧 Configuration
+
+### Basic Configuration
 ```typescript
-import { DiscoveryEngine } from './discovery-engine';
+const scorer = new ConfidenceScorer({
+  enableAdvancedScoring: true,
+  enableAdaptiveLearning: true,
+  enableExternalMetrics: true,
+  weights: {
+    repositoryHealth: 0.12,
+    communityAdoption: 0.12,
+    documentationQuality: 0.10,
+    maintenanceStatus: 0.10,
+    // ... other weights
+  }
+});
+```
 
-// Initialize with API key
-const engine = new DiscoveryEngine({
-  perplexityApiKey: 'your-api-key',
-  cacheEnabled: true,
-  fallbackEnabled: true
+### Advanced Configuration
+```typescript
+const scorer = new ConfidenceScorer({
+  enableAdvancedScoring: true,
+  enableAdaptiveLearning: true,
+  enableExternalMetrics: true,
+  weights: {
+    // Custom weight distribution
+    contentQuality: 0.15,
+    urlReliability: 0.10,
+    contentCompleteness: 0.10,
+    sourceCredibility: 0.10,
+    technicalValidity: 0.08,
+    contextRelevance: 0.08,
+    repositoryHealth: 0.12,
+    npmPackageHealth: 0.10,
+    documentationQuality: 0.10,
+    communityAdoption: 0.12,
+    maintenanceStatus: 0.10,
+    technicalQuality: 0.08,
+    securityScore: 0.08,
+    performanceScore: 0.05
+  },
+  thresholds: {
+    minimumScore: 0.3,
+    highConfidenceScore: 0.7,
+    excellentScore: 0.9
+  }
+});
+```
+
+## 📈 Usage Examples
+
+### Basic Scoring
+```typescript
+import { ConfidenceScorer } from './confidence-scorer';
+
+const scorer = new ConfidenceScorer();
+await scorer.initialize();
+
+const results = await scorer.scoreResults(discoveryResults, 'filesystem operations');
+console.log('Scored results:', results);
+```
+
+### Detailed Explanations
+```typescript
+const explanation = await scorer.generateConfidenceExplanation(
+  result,
+  'filesystem operations'
+);
+
+console.log('Overall Score:', explanation.overallScore);
+console.log('Explanation:', explanation.explanation);
+console.log('Strengths:', explanation.strengths);
+console.log('Weaknesses:', explanation.weaknesses);
+console.log('Recommendations:', explanation.recommendations);
+```
+
+### Adaptive Learning
+```typescript
+// Record user feedback
+await scorer.recordFeedback({
+  mcpId: 'filesystem-mcp',
+  mcpName: 'filesystem-mcp',
+  originalQuery: 'filesystem operations',
+  predictedScore: 0.8,
+  actualScore: 0.9,
+  success: true,
+  usageDuration: 45,
+  feedback: 'repositoryHealth:0.9,documentationQuality:0.8'
 });
 
-// Discover MCP servers
-const result = await engine.discoverMCPs('filesystem tools');
+// Get learning statistics
+const stats = scorer.getLearningStats();
+console.log('Learning accuracy:', stats.accuracy);
 
-if (result.success) {
-  console.log(`Found ${result.results.length} MCP servers`);
-  result.results.forEach(mcp => {
-    console.log(`- ${mcp.mcp_name}: ${mcp.npm_package}`);
+// Get weight adjustments
+const adjustments = await scorer.getWeightAdjustments();
+console.log('Recommended adjustments:', adjustments);
+```
+
+### Enhanced Explanations
+```typescript
+const enhancedExplanation = await scorer.getEnhancedConfidenceExplanation(
+  result,
+  'filesystem operations'
+);
+
+console.log('Predicted Success:', enhancedExplanation.learningInsights.predictedSuccess);
+console.log('Confidence:', enhancedExplanation.learningInsights.confidence);
+console.log('Similar Cases:', enhancedExplanation.learningInsights.similarCases);
+```
+
+## 🧠 Adaptive Learning System
+
+### How It Works
+1. **Data Collection**: Records user feedback and usage outcomes
+2. **Pattern Analysis**: Identifies factors that correlate with success
+3. **Bias Detection**: Finds scoring biases and inconsistencies
+4. **Weight Adjustment**: Automatically adjusts scoring weights
+5. **Success Prediction**: Predicts success probability for new MCPs
+
+### Learning Metrics
+- **Accuracy**: Overall prediction accuracy
+- **Bias**: Systematic over/under-scoring
+- **Variance**: Consistency of predictions
+- **Improvement Rate**: Rate of accuracy improvement over time
+- **Factor Performance**: Success rate by scoring factor
+
+### Weight Adjustments
+The system automatically suggests weight adjustments based on:
+- **Factor Bias**: Which factors are consistently over/under-weighted
+- **Success Correlation**: Which factors best predict success
+- **User Feedback**: Direct feedback on scoring accuracy
+- **Usage Patterns**: How different MCPs perform in practice
+
+## 🔍 Scoring Factors Explained
+
+### Repository Health (0.12 weight)
+- **Stars & Forks**: Community interest and adoption
+- **Recent Activity**: Last commit, recent commits, contributors
+- **Issue Health**: Open vs closed issues, response time
+- **Documentation**: README size, API docs, examples
+- **Best Practices**: Tests, CI/CD, security policy
+
+### Community Adoption (0.12 weight)
+- **GitHub Stars**: Repository popularity
+- **NPM Downloads**: Package usage
+- **Social Mentions**: Stack Overflow, Reddit, Twitter
+- **Content Creation**: Blog posts, conference talks
+- **Corporate Adoption**: Enterprise usage patterns
+
+### Documentation Quality (0.10 weight)
+- **Completeness**: README, API docs, examples
+- **Tutorials**: Step-by-step guides
+- **Best Practices**: Contributing guidelines, code of conduct
+- **Maintenance**: Changelog, issue templates
+
+### Maintenance Status (0.10 weight)
+- **Recent Updates**: Last commit, last publish
+- **Version History**: Number of versions, release frequency
+- **Security Updates**: Security patches, vulnerability fixes
+- **Active Development**: Regular commits, issue responses
+
+### Security Score (0.08 weight)
+- **Vulnerability Count**: Known security issues
+- **Security Audits**: Automated security scanning
+- **Security Policy**: Security documentation and procedures
+- **Credential Handling**: Secure credential management
+
+### Performance Score (0.05 weight)
+- **Bundle Size**: Package size and dependencies
+- **Dependency Count**: Number of dependencies
+- **Optimization**: Performance optimizations
+- **Resource Usage**: Memory and CPU requirements
+
+## 🎯 Best Practices
+
+### For High Confidence Results
+- Use for production applications
+- Monitor for updates and security patches
+- Consider as primary recommendations
+
+### For Medium Confidence Results
+- Evaluate carefully before production use
+- Check for recent updates and community activity
+- Consider as secondary options
+
+### For Low Confidence Results
+- Use with caution or for experimentation only
+- Verify security and maintenance status
+- Consider alternatives with higher confidence
+
+## 🔧 Integration
+
+### With Discovery Engine
+```typescript
+import { DiscoveryEngine } from './index';
+import { ConfidenceScorer } from './confidence-scorer';
+
+const scorer = new ConfidenceScorer();
+const engine = new DiscoveryEngine({
+  perplexityApiKey: 'your-key',
+  confidenceScorer: scorer
+});
+```
+
+### With Registry System
+```typescript
+import { MCPRegistry } from '../../core/registry';
+
+const registry = new MCPRegistry();
+const scorer = new ConfidenceScorer();
+
+// Store scored results in registry
+for (const result of scoredResults) {
+  await registry.addEntry({
+    // ... entry data
+    discoveryMetadata: {
+      confidence: result.confidence_score,
+      // ... other metadata
+    }
   });
 }
 ```
 
-### Category-based Discovery
-
-```typescript
-// Discover by category
-const filesystemMCPs = await engine.discoverByCategory('filesystem');
-
-// Discover by tool type
-const databaseMCPs = await engine.discoverByToolType('database');
-
-// Discover by technology
-const nodejsMCPs = await engine.discoverByTechnology('nodejs');
-```
-
-### Advanced Options
-
-```typescript
-const result = await engine.discoverMCPs('web scraping', {
-  maxResults: 5,
-  minConfidenceScore: 0.7,
-  categories: ['web', 'scraping'],
-  excludeCategories: ['deprecated']
-});
-```
-
-## Configuration
-
-### Discovery Engine Configuration
-
-```typescript
-interface DiscoveryEngineConfig {
-  perplexityApiKey?: string;        // Perplexity API key
-  maxRetries?: number;              // Max retry attempts (default: 3)
-  retryDelay?: number;              // Retry delay in ms (default: 1000)
-  rateLimitPerMinute?: number;      // API rate limit (default: 20)
-  cacheEnabled?: boolean;           // Enable caching (default: true)
-  cacheTtlMinutes?: number;         // Cache TTL in minutes (default: 60)
-  fallbackEnabled?: boolean;        // Enable fallback (default: true)
-}
-```
-
-### Search Options
-
-```typescript
-interface DiscoverySearchOptions {
-  maxResults?: number;              // Maximum results to return
-  includeNpmPackages?: boolean;     // Include npm packages
-  includeGitHubRepos?: boolean;     // Include GitHub repositories
-  minConfidenceScore?: number;      // Minimum confidence score
-  categories?: string[];            // Include only these categories
-  excludeCategories?: string[];     // Exclude these categories
-}
-```
-
-## Components
-
-### PerplexityClient
-
-Handles communication with the Perplexity API with robust error handling and retry logic.
-
-```typescript
-import { PerplexityClient } from './perplexity-client';
-
-const client = new PerplexityClient({
-  apiKey: 'your-api-key',
-  maxRetries: 3,
-  retryDelay: 1000
-});
-
-// Test connection
-const connectionTest = await client.testConnection();
-if (connectionTest.success) {
-  console.log('API connection successful');
-}
-
-// Search for MCP servers
-const result = await client.search('filesystem MCP server');
-```
-
-**Features:**
-- Exponential backoff retry logic
-- Request/response logging
-- Connection testing
-- Usage statistics tracking
-
-### MCPParser
-
-Parses Perplexity API responses to extract structured MCP server information.
-
-```typescript
-import { MCPParser } from './mcp-parser';
-
-const parser = new MCPParser({
-  minConfidenceScore: 0.3,
-  requireRepositoryUrl: false,
-  strictMode: false
-});
-
-const results = await parser.parseResponse(apiResponse);
-```
-
-**Extraction Capabilities:**
-- MCP server names
-- Repository URLs (GitHub, GitLab, etc.)
-- NPM package names
-- Documentation URLs
-- Setup instructions
-- Required credentials
-
-### ConfidenceScorer
-
-Evaluates the quality and reliability of discovered MCP servers using multiple factors.
-
-```typescript
-import { ConfidenceScorer } from './confidence-scorer';
-
-const scorer = new ConfidenceScorer({
-  weights: {
-    contentQuality: 0.25,
-    urlReliability: 0.20,
-    contentCompleteness: 0.20,
-    sourceCredibility: 0.15,
-    technicalValidity: 0.10,
-    contextRelevance: 0.10
-  }
-});
-
-const scoredResults = await scorer.scoreResults(results, originalQuery);
-```
-
-**Scoring Factors:**
-- Content quality (repository, npm package, documentation)
-- URL reliability (domain reputation, official sources)
-- Content completeness (setup instructions, credentials)
-- Source credibility (official MCP packages, verified sources)
-- Technical validity (package naming, repository structure)
-- Context relevance (query matching, category alignment)
-
-### RateLimiter
-
-Manages API rate limits with sliding window and burst protection.
-
-```typescript
-import { RateLimiter } from './rate-limiter';
-
-const rateLimiter = new RateLimiter({
-  requestsPerMinute: 20,
-  burstLimit: 40,
-  enableSlidingWindow: true
-});
-
-// Wait for available slot
-await rateLimiter.waitForSlot();
-
-// Record request
-rateLimiter.recordRequest();
-
-// Record response time
-rateLimiter.recordResponseTime(1500);
-```
-
-**Features:**
-- Sliding window rate limiting
-- Burst protection
-- Request tracking
-- Response time statistics
-- Configurable limits
-
-### CacheManager
-
-Provides intelligent caching with TTL, LRU eviction, and compression.
-
-```typescript
-import { CacheManager } from './cache-manager';
-
-const cacheManager = new CacheManager({
-  enabled: true,
-  ttlMinutes: 60,
-  maxEntries: 1000,
-  enableLRU: true,
-  enableCompression: false
-});
-
-// Store results
-await cacheManager.set('query-key', results);
-
-// Retrieve results
-const cached = await cacheManager.get('query-key');
-
-// Get statistics
-const stats = cacheManager.getStats();
-console.log(`Hit rate: ${stats.hitRate * 100}%`);
-```
-
-**Features:**
-- TTL-based expiration
-- LRU eviction policy
-- Hit/miss statistics
-- Memory usage tracking
-- Configurable compression
-
-### FallbackManager
-
-Provides alternative discovery methods when primary sources fail.
-
-```typescript
-import { FallbackManager } from './fallback-manager';
-
-const fallbackManager = new FallbackManager({
-  enablePredefinedRegistry: true,
-  enableAlternativeSources: true,
-  maxFallbackResults: 10
-});
-
-const results = await fallbackManager.attemptFallbackDiscovery('filesystem');
-```
-
-**Fallback Sources:**
-- Predefined MCP registry (curated list)
-- GitHub API search
-- NPM registry search
-- Community-maintained lists
-
-### QueryTemplates
-
-Predefined search patterns for different discovery scenarios.
-
-```typescript
-import { QueryTemplateRegistry, queryUtils } from './query-templates';
-
-const registry = new QueryTemplateRegistry();
-
-// Get template by name
-const template = registry.getTemplate('nodejs-mcp');
-
-// Generate query
-const query = registry.generateQuery('nodejs-mcp', { technology: 'filesystem' });
-
-// Quick utility functions
-const techQuery = queryUtils.generateTechnologyQuery('nodejs');
-const toolQuery = queryUtils.generateToolTypeQuery('database');
-const integrationQuery = queryUtils.generateIntegrationQuery('slack');
-```
-
-**Template Categories:**
-- General discovery
-- Technology-specific (Node.js, Python, Docker)
-- Tool-type specific (filesystem, database, git)
-- Integration-specific (Slack, GitHub, AWS)
-- Category-specific (development, testing, deployment)
-- Advanced (multi-tool, custom development, comparisons)
-
-## Error Handling
-
-The Discovery Engine provides comprehensive error handling with graceful degradation:
-
-```typescript
-try {
-  const result = await engine.discoverMCPs('filesystem tools');
-  
-  if (!result.success) {
-    console.error('Discovery failed:', result.error);
-    // Handle error appropriately
-  }
-} catch (error) {
-  console.error('Unexpected error:', error);
-  // Handle unexpected errors
-}
-```
-
-**Error Scenarios:**
-- API rate limiting
-- Network connectivity issues
-- Invalid API responses
-- Parsing failures
-- Cache errors
-
-## Monitoring and Statistics
-
-### Discovery Statistics
-
-```typescript
-const stats = await engine.getDiscoveryStats();
-
-console.log(`Total searches: ${stats.totalSearches}`);
-console.log(`Cache hit rate: ${stats.cacheHitRate * 100}%`);
-console.log(`Average search time: ${stats.averageSearchTime}ms`);
-console.log(`Rate limit status: ${stats.rateLimitStatus.remaining} remaining`);
-```
-
-### Component Statistics
-
-```typescript
-// Rate limiter stats
-const rateLimitStats = rateLimiter.getDetailedStats();
-
-// Cache stats
-const cacheStats = cacheManager.getStats();
-
-// Confidence scoring stats
-const scoringStats = scorer.getScoringStats(results);
-
-// Fallback stats
-const fallbackStats = fallbackManager.getStats();
-```
-
-## Testing
-
-The module includes comprehensive tests covering all components:
-
-```bash
-# Run all tests
-npm test
-
-# Run with coverage
-npm run test:coverage
-
-# Run specific test file
-npm test discovery-engine.test.ts
-```
-
-**Test Coverage:**
-- Unit tests for all components
-- Integration tests with mocked APIs
-- Error handling scenarios
-- Performance and edge cases
-- Configuration validation
-
-## Best Practices
-
-### 1. API Key Management
-
-```typescript
-// Use environment variables
-const engine = new DiscoveryEngine({
-  perplexityApiKey: process.env.PERPLEXITY_API_KEY
-});
-
-// Or use credential manager
-import { credentialUtils } from '../credential-manager';
-
-const apiKey = await credentialUtils.get('perplexity_api_key');
-const engine = new DiscoveryEngine({ perplexityApiKey: apiKey });
-```
-
-### 2. Caching Strategy
-
-```typescript
-// Enable caching for production
-const engine = new DiscoveryEngine({
-  cacheEnabled: true,
-  cacheTtlMinutes: 60 // 1 hour cache
-});
-
-// Clear cache when needed
-await engine.clearCache();
-```
-
-### 3. Rate Limiting
-
-```typescript
-// Configure appropriate rate limits
-const engine = new DiscoveryEngine({
-  rateLimitPerMinute: 20, // Adjust based on your API plan
-  maxRetries: 3
-});
-```
-
-### 4. Error Handling
-
-```typescript
-// Always check for success
-const result = await engine.discoverMCPs(query);
-
-if (result.success) {
-  // Process results
-  processResults(result.results);
-} else {
-  // Handle failure
-  handleDiscoveryFailure(result.error);
-}
-```
-
-### 5. Confidence Filtering
-
-```typescript
-// Filter by confidence score
-const result = await engine.discoverMCPs(query, {
-  minConfidenceScore: 0.7 // Only high-confidence results
-});
-
-// Check confidence levels
-result.results.forEach(mcp => {
-  const level = scorer.getConfidenceLevel(mcp.confidence_score);
-  console.log(`${mcp.mcp_name}: ${level} confidence`);
-});
-```
-
-## Troubleshooting
-
-### Common Issues
-
-**1. API Key Not Set**
-```
-Error: Perplexity API key is required
-```
-Solution: Set the API key in configuration or environment variables.
-
-**2. Rate Limit Exceeded**
-```
-Error: API rate limit exceeded
-```
-Solution: Increase rate limit configuration or implement request queuing.
-
-**3. No Results Found**
-```
-Result: success: false, results: []
-```
-Solution: Try different search terms or enable fallback mechanisms.
-
-**4. Low Confidence Scores**
-```
-Result: confidence_score: 0.2
-```
-Solution: Adjust confidence scoring weights or improve search queries.
-
-### Debug Mode
-
-Enable detailed logging for troubleshooting:
-
-```typescript
-import { createLogger } from '../../utils/logger';
-
-const logger = createLogger('discovery-engine');
-logger.level = 'debug'; // Enable debug logging
-```
-
-## Contributing
-
-When contributing to the Discovery Engine:
-
-1. **Add Tests**: Include unit and integration tests for new features
-2. **Update Documentation**: Keep README and code comments current
-3. **Follow Patterns**: Use existing patterns for consistency
-4. **Handle Errors**: Implement proper error handling and logging
-5. **Performance**: Consider caching and rate limiting implications
-
-## License
-
-This module is part of the MCP Meta-Orchestrator project and follows the same MIT license.
+## 📊 Performance Considerations
+
+### Scoring Performance
+- **Basic Scoring**: ~10-50ms per result
+- **Advanced Scoring**: ~100-500ms per result (with external metrics)
+- **Batch Processing**: Optimized for multiple results
+- **Caching**: Results cached for repeated queries
+
+### Learning Performance
+- **Feedback Processing**: ~1-5ms per feedback record
+- **Weight Updates**: ~10-50ms per update cycle
+- **Prediction**: ~5-20ms per prediction
+- **Storage**: Minimal disk usage for learning data
+
+## 🚀 Future Enhancements
+
+### Planned Features
+- **Real-time Metrics**: Live GitHub/NPM API integration
+- **Advanced ML**: Deep learning models for scoring
+- **Community Insights**: Integration with more data sources
+- **Custom Scoring**: User-defined scoring criteria
+- **A/B Testing**: Experimental scoring algorithms
+
+### Integration Opportunities
+- **CI/CD Integration**: Automated MCP evaluation
+- **Security Scanning**: Integration with security tools
+- **Performance Monitoring**: Real-time performance metrics
+- **Community Analytics**: Advanced community insights
+
+## 📝 API Reference
+
+### ConfidenceScorer Class
+- `constructor(config?: Partial<ConfidenceConfig>)`
+- `initialize(): Promise<void>`
+- `scoreResults(results: MCPDiscoveryResult[], query: string): Promise<MCPDiscoveryResult[]>`
+- `generateConfidenceExplanation(result: MCPDiscoveryResult, query: string): Promise<ConfidenceExplanation>`
+- `getEnhancedConfidenceExplanation(result: MCPDiscoveryResult, query: string): Promise<EnhancedConfidenceExplanation>`
+- `recordFeedback(data: UserFeedbackData): Promise<void>`
+- `getLearningStats(): LearningStats`
+- `getWeightAdjustments(): Promise<WeightAdjustment[]>`
+- `applyWeightAdjustments(): Promise<void>`
+- `predictSuccess(mcpId: string, mcpName: string, predictedScore: number, query: string): Promise<SuccessPrediction>`
+
+### Types
+- `ConfidenceFactors`: Individual scoring factors
+- `ConfidenceExplanation`: Detailed score explanation
+- `LearningStats`: Adaptive learning statistics
+- `WeightAdjustment`: Weight adjustment recommendations
+- `UserFeedback`: User feedback data structure
+
+## 🎉 Conclusion
+
+The Enhanced Confidence Scoring System provides a comprehensive, intelligent approach to evaluating MCP discovery results. With its multi-factor scoring, adaptive learning, and detailed explanations, it ensures users get the best recommendations for their specific needs while continuously improving through user feedback and usage patterns.
+
+The system is designed to be accurate, transparent, and continuously improving, making it an essential component of the MCP Meta-Orchestrator for reliable MCP discovery and recommendation.
