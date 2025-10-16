@@ -15,6 +15,7 @@ import { createRegistry } from './registry.js';
 import { defaultConfigGenerator } from '../modules/config-generator/index.js';
 import { defaultCredentialManager } from '../modules/credential-manager/index.js';
 import { defaultDiscoveryEngine, defaultWebScraper } from '../modules/discovery-engine/index.js';
+import { defaultSetupInstructionParser } from '../modules/discovery-engine/setup-instruction-parser.js';
 
 const logger = createLogger('mcp-tools');
 
@@ -404,12 +405,17 @@ async function handleGetMCPIntegrationCode(args: any) {
       throw new Error(`Failed to scrape documentation: ${scrapedContent.error}`);
     }
 
-    // Extract integration information from scraped content
+    // Parse setup instructions using the new parser
+    const structuredInstructions = await defaultSetupInstructionParser.parseSetupInstructions(scrapedContent);
+
+    // Extract integration information from scraped content (legacy support)
     const integrationInfo = {
       installation_command: extractInstallationCommand(scrapedContent),
       configuration_json: extractConfigurationJson(scrapedContent, target_environment),
       setup_code: extractSetupCode(scrapedContent),
       verification_steps: extractVerificationSteps(scrapedContent),
+      // Enhanced structured instructions
+      structured_instructions: structuredInstructions,
       additional_resources: {
         installation_commands: scrapedContent.extractedData.installationCommands,
         configuration_examples: scrapedContent.extractedData.configurationExamples,
@@ -422,7 +428,8 @@ async function handleGetMCPIntegrationCode(args: any) {
         source_url: documentation_url,
         scraped_at: new Date().toISOString(),
         content_type: scrapedContent.metadata.contentType,
-        content_size: scrapedContent.metadata.size
+        content_size: scrapedContent.metadata.size,
+        parsing_confidence: structuredInstructions.metadata.confidence
       }
     };
 
@@ -430,7 +437,11 @@ async function handleGetMCPIntegrationCode(args: any) {
       mcp_identifier,
       hasInstallationCommand: !!integrationInfo.installation_command,
       hasConfiguration: !!integrationInfo.configuration_json,
-      hasSetupCode: !!integrationInfo.setup_code
+      hasSetupCode: !!integrationInfo.setup_code,
+      structuredInstructions: structuredInstructions.metadata.confidence,
+      installationCommands: structuredInstructions.installation.commands.length,
+      credentials: structuredInstructions.credentials.length,
+      examples: structuredInstructions.examples.length
     });
 
     return {
@@ -454,7 +465,8 @@ async function handleGetMCPIntegrationCode(args: any) {
             installation_command: '',
             configuration_json: {},
             setup_code: '',
-            verification_steps: []
+            verification_steps: [],
+            structured_instructions: null
           }, null, 2)
         }
       ]
