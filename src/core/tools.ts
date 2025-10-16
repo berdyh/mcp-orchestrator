@@ -10,8 +10,13 @@ import {
   ListToolsRequestSchema 
 } from '@modelcontextprotocol/sdk/types.js';
 import { createLogger } from '../utils/logger.js';
+import { analyzeTaskPlan } from './plan-analyzer.js';
+import { createRegistry } from './registry.js';
 
 const logger = createLogger('mcp-tools');
+
+// Global registry instance
+let registry: ReturnType<typeof createRegistry> | null = null;
 
 /**
  * Registers all available tools with the MCP server
@@ -20,6 +25,10 @@ export async function registerTools(server: Server): Promise<void> {
   logger.info('Registering MCP tools...');
 
   try {
+    // Initialize registry
+    registry = createRegistry();
+    await registry.initialize();
+    logger.info('Registry initialized successfully');
     // Tool handlers
     server.setRequestHandler(CallToolRequestSchema, async (request) => {
       const { name, arguments: args } = request.params;
@@ -182,20 +191,37 @@ export async function registerTools(server: Server): Promise<void> {
   }
 }
 
-// Tool handler functions (stubs for now)
+// Tool handler functions
 async function handleAnalyzeTaskPlan(args: any) {
   logger.info('Handling analyze_task_plan request');
-  return {
-    content: [
-      {
-        type: 'text',
-        text: JSON.stringify({
-          detected_tools: [],
-          recommendations: ['Tool implementation pending']
-        })
-      }
-    ]
-  };
+  
+  try {
+    const result = await analyzeTaskPlan(args);
+    
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify(result, null, 2)
+        }
+      ]
+    };
+  } catch (error) {
+    logger.error('Error in analyze_task_plan:', error);
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify({
+            error: 'Failed to analyze task plan',
+            message: error instanceof Error ? error.message : 'Unknown error',
+            detected_tools: [],
+            recommendations: ['Please check your input and try again']
+          }, null, 2)
+        }
+      ]
+    };
+  }
 }
 
 async function handleDiscoverMCPServers(args: any) {
@@ -283,29 +309,155 @@ async function handleAttachMCPToSubtask(args: any) {
 
 async function handleListCachedMCPs(args: any) {
   logger.info('Handling list_cached_mcps request');
-  return {
-    content: [
-      {
-        type: 'text',
-        text: JSON.stringify({
-          cached_mcps: []
-        })
-      }
-    ]
-  };
+  
+  try {
+    if (!registry) {
+      throw new Error('Registry not initialized');
+    }
+    
+    const filterBy = args.filter_by || 'all';
+    let entries;
+    
+    switch (filterBy) {
+      case 'category':
+        // Get entries grouped by category
+        const stats = await registry.getStats();
+        entries = Object.keys(stats.categories).map(category => ({
+          name: category,
+          category: category,
+          last_discovered: 'N/A',
+          configuration_ready: true,
+          credentials_stored: false
+        }));
+        break;
+      case 'last_used':
+        // Get entries sorted by last used
+        entries = await registry.searchEntries({ limit: 50 });
+        entries = entries.map(entry => ({
+          name: entry.name,
+          category: entry.category.join(', '),
+          last_discovered: entry.discoveryMetadata.discoveredAt,
+          configuration_ready: true,
+          credentials_stored: entry.requiredCredentials.length === 0
+        }));
+        break;
+      default:
+        // Get all entries
+        entries = await registry.searchEntries();
+        entries = entries.map(entry => ({
+          name: entry.name,
+          category: entry.category.join(', '),
+          last_discovered: entry.discoveryMetadata.discoveredAt,
+          configuration_ready: true,
+          credentials_stored: entry.requiredCredentials.length === 0
+        }));
+    }
+    
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify({
+            cached_mcps: entries
+          }, null, 2)
+        }
+      ]
+    };
+  } catch (error) {
+    logger.error('Error in list_cached_mcps:', error);
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify({
+            error: 'Failed to list cached MCPs',
+            message: error instanceof Error ? error.message : 'Unknown error',
+            cached_mcps: []
+          }, null, 2)
+        }
+      ]
+    };
+  }
 }
 
 async function handleSearchMCPRegistry(args: any) {
   logger.info('Handling search_mcp_registry request');
-  return {
-    content: [
-      {
-        type: 'text',
-        text: JSON.stringify({
-          results: [],
-          source_reliability: {}
-        })
-      }
-    ]
-  };
+  
+  try {
+    if (!registry) {
+      throw new Error('Registry not initialized');
+    }
+    
+    const { query, sources = ['local_cache'] } = args;
+    
+    if (!query || typeof query !== 'string') {
+      throw new Error('Query parameter is required');
+    }
+    
+    const results = [];
+    const sourceReliability: Record<string, number> = {};
+    
+    // Search local cache
+    if (sources.includes('local_cache')) {
+      const localResults = await registry.searchEntries({
+        name: query,
+        limit: 20
+      });
+      
+      results.push(...localResults.map(entry => ({
+        id: entry.id,
+        name: entry.name,
+        category: entry.category,
+        repository: entry.repository,
+        npmPackage: entry.npmPackage,
+        confidence: entry.discoveryMetadata.confidence,
+        source: 'local_cache'
+      })));
+      
+      sourceReliability.local_cache = 0.9; // High reliability for local cache
+    }
+    
+    // TODO: Implement other sources (perplexity, github, npm)
+    if (sources.includes('perplexity')) {
+      sourceReliability.perplexity = 0.7; // Medium reliability
+      logger.info('Perplexity search not yet implemented');
+    }
+    
+    if (sources.includes('github')) {
+      sourceReliability.github = 0.8; // High reliability
+      logger.info('GitHub search not yet implemented');
+    }
+    
+    if (sources.includes('npm')) {
+      sourceReliability.npm = 0.8; // High reliability
+      logger.info('NPM search not yet implemented');
+    }
+    
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify({
+            results,
+            source_reliability: sourceReliability
+          }, null, 2)
+        }
+      ]
+    };
+  } catch (error) {
+    logger.error('Error in search_mcp_registry:', error);
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify({
+            error: 'Failed to search MCP registry',
+            message: error instanceof Error ? error.message : 'Unknown error',
+            results: [],
+            source_reliability: {}
+          }, null, 2)
+        }
+      ]
+    };
+  }
 }
