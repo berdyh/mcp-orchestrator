@@ -14,6 +14,7 @@ import { analyzeTaskPlan } from './plan-analyzer.js';
 import { createRegistry } from './registry.js';
 import { defaultConfigGenerator } from '../modules/config-generator/index.js';
 import { defaultCredentialManager } from '../modules/credential-manager/index.js';
+import { defaultDiscoveryEngine } from '../modules/discovery-engine/index.js';
 
 const logger = createLogger('mcp-tools');
 
@@ -228,20 +229,156 @@ async function handleAnalyzeTaskPlan(args: any) {
 
 async function handleDiscoverMCPServers(args: any) {
   logger.info('Handling discover_mcp_servers request');
-  return {
-    content: [
+  
+  try {
+    const { tool_names, categories, search_depth = 'thorough' } = args;
+    
+    if (!tool_names || !Array.isArray(tool_names) || tool_names.length === 0) {
+      throw new Error('tool_names is required and must be a non-empty array');
+    }
+
+    if (!categories || !Array.isArray(categories) || categories.length === 0) {
+      throw new Error('categories is required and must be a non-empty array');
+    }
+
+    // Extract technologies from tool names and categories
+    const technologies = extractTechnologiesFromTools(tool_names, categories);
+    
+    logger.info('Starting MCP discovery with intelligent queries', {
+      toolNames: tool_names,
+      categories,
+      technologies,
+      searchDepth: search_depth
+    });
+
+    // Use intelligent query construction for discovery
+    const discoveryResult = await defaultDiscoveryEngine.discoverWithIntelligentQueries(
+      tool_names,
+      technologies,
       {
-        type: 'text',
-        text: JSON.stringify({
-          found_mcps: [],
-          search_metadata: {
-            sources_checked: [],
-            timestamp: new Date().toISOString()
-          }
-        })
+        searchDepth: search_depth,
+        maxResults: 20,
+        minConfidenceScore: 0.3,
+        categories,
+        useIntelligentQueries: true
       }
-    ]
+    );
+
+    if (!discoveryResult.success) {
+      throw new Error(discoveryResult.error || 'MCP discovery failed');
+    }
+
+    // Format results for the tool response
+    const found_mcps = discoveryResult.results.map(result => ({
+      name: result.mcp_name,
+      repository: result.repository_url,
+      npm_package: result.npm_package,
+      documentation: result.documentation_url,
+      setup_instructions: result.setup_instructions,
+      required_credentials: result.required_credentials,
+      confidence_score: result.confidence_score,
+      category: result.category || 'general',
+      last_updated: result.last_updated
+    }));
+
+    const search_metadata = {
+      sources_checked: ['perplexity', 'intelligent_queries'],
+      timestamp: new Date().toISOString(),
+      search_time_ms: discoveryResult.searchTime,
+      queries_used: discoveryResult.queryMetadata?.queriesUsed.length || 0,
+      intelligent_queries: discoveryResult.queryMetadata?.intelligentQueries || false,
+      average_confidence: discoveryResult.queryMetadata?.averageConfidence || 0,
+      total_found: discoveryResult.totalFound
+    };
+
+    logger.info('MCP discovery completed successfully', {
+      foundCount: found_mcps.length,
+      searchTime: discoveryResult.searchTime,
+      queriesUsed: search_metadata.queries_used
+    });
+
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify({
+            found_mcps,
+            search_metadata
+          }, null, 2)
+        }
+      ]
+    };
+
+  } catch (error) {
+    logger.error('Error in discover_mcp_servers:', error);
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify({
+            error: 'Failed to discover MCP servers',
+            message: error instanceof Error ? error.message : 'Unknown error',
+            found_mcps: [],
+            search_metadata: {
+              sources_checked: [],
+              timestamp: new Date().toISOString(),
+              error: true
+            }
+          }, null, 2)
+        }
+      ]
+    };
+  }
+}
+
+/**
+ * Extracts technologies from tool names and categories
+ */
+function extractTechnologiesFromTools(toolNames: string[], categories: string[]): string[] {
+  const technologies = new Set<string>();
+  
+  // Common technology mappings
+  const techMappings: Record<string, string[]> = {
+    'node': ['nodejs', 'npm'],
+    'nodejs': ['nodejs', 'npm'],
+    'javascript': ['nodejs', 'npm'],
+    'typescript': ['nodejs', 'npm'],
+    'python': ['python', 'pip'],
+    'docker': ['docker', 'container'],
+    'git': ['git', 'github'],
+    'database': ['database', 'sql'],
+    'api': ['api', 'http'],
+    'web': ['web', 'http'],
+    'file': ['filesystem'],
+    'fs': ['filesystem'],
+    'test': ['testing'],
+    'deploy': ['deployment'],
+    'build': ['build', 'deployment']
   };
+
+  // Extract from tool names
+  for (const toolName of toolNames) {
+    const lowerTool = toolName.toLowerCase();
+    
+    for (const [key, values] of Object.entries(techMappings)) {
+      if (lowerTool.includes(key)) {
+        values.forEach(tech => technologies.add(tech));
+      }
+    }
+  }
+
+  // Extract from categories
+  for (const category of categories) {
+    const lowerCategory = category.toLowerCase();
+    
+    for (const [key, values] of Object.entries(techMappings)) {
+      if (lowerCategory.includes(key)) {
+        values.forEach(tech => technologies.add(tech));
+      }
+    }
+  }
+
+  return Array.from(technologies);
 }
 
 async function handleGetMCPIntegrationCode(args: any) {
