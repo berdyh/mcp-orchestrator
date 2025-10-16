@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  mcp-meta-orchestrator:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+      target: development
+    ports:
+      - "3000:3000"
+    volumes:
+      - ..:/app
+      - /app/node_modules
+      - mcp-hub-data:/app/.mcp-hub
+    environment:
+      - NODE_ENV=development
+      - LOG_LEVEL=debug
+    env_file:
+      - ../env.example
+    restart: unless-stopped
+    networks:
+      - mcp-network
+
+  # Test service
+  mcp-meta-orchestrator-test:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+      target: build
+    volumes:
+      - ..:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=test
+      - LOG_LEVEL=error
+    command: ["npm", "test"]
+    networks:
+      - mcp-network
+
+volumes:
+  mcp-hub-data:
+    driver: local
+
+networks:
+  mcp-network:
+    driver: bridge
+
