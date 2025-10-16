@@ -14,6 +14,7 @@ import { RateLimiter } from './rate-limiter';
 import { CacheManager } from './cache-manager';
 import { FallbackManager } from './fallback-manager';
 import { QueryConstructor, type QueryContext, type ConstructedQuery } from './query-constructor';
+import { WebScraper, type ScrapedContent, type ScrapingTarget } from './web-scraper';
 
 const logger = createLogger('discovery-engine');
 
@@ -28,6 +29,15 @@ export interface DiscoveryEngineConfig {
   cacheEnabled?: boolean;
   cacheTtlMinutes?: number;
   fallbackEnabled?: boolean;
+  webScrapingEnabled?: boolean;
+  webScrapingConfig?: {
+    maxRetries?: number;
+    retryDelay?: number;
+    timeout?: number;
+    rateLimitPerMinute?: number;
+    respectRobotsTxt?: boolean;
+    maxContentLength?: number;
+  };
 }
 
 /**
@@ -42,6 +52,8 @@ export interface DiscoverySearchOptions {
   excludeCategories?: string[];
   searchDepth?: 'quick' | 'thorough';
   useIntelligentQueries?: boolean;
+  enableWebScraping?: boolean;
+  scrapeDocumentation?: boolean;
 }
 
 /**
@@ -59,6 +71,7 @@ export interface DiscoveryResult {
     intelligentQueries: boolean;
     averageConfidence: number;
   };
+  scrapedContent?: ScrapedContent[];
 }
 
 /**
@@ -72,6 +85,7 @@ export class DiscoveryEngine {
   private cacheManager: CacheManager;
   private fallbackManager: FallbackManager;
   private queryConstructor: QueryConstructor;
+  private webScraper: WebScraper;
   private config: DiscoveryEngineConfig;
 
   constructor(config: DiscoveryEngineConfig = {}) {
@@ -82,6 +96,15 @@ export class DiscoveryEngine {
       cacheEnabled: true,
       cacheTtlMinutes: 60,
       fallbackEnabled: true,
+      webScrapingEnabled: true,
+      webScrapingConfig: {
+        maxRetries: 3,
+        retryDelay: 1000,
+        timeout: 30000,
+        rateLimitPerMinute: 10,
+        respectRobotsTxt: true,
+        maxContentLength: 1024 * 1024
+      },
       ...config
     };
 
@@ -106,11 +129,13 @@ export class DiscoveryEngine {
       enableAlternativeSources: this.config.fallbackEnabled!
     });
     this.queryConstructor = new QueryConstructor();
+    this.webScraper = new WebScraper(this.config.webScrapingConfig);
 
     logger.info('Discovery engine initialized', {
       rateLimitPerMinute: this.config.rateLimitPerMinute,
       cacheEnabled: this.config.cacheEnabled,
-      fallbackEnabled: this.config.fallbackEnabled
+      fallbackEnabled: this.config.fallbackEnabled,
+      webScrapingEnabled: this.config.webScrapingEnabled
     });
   }
 
@@ -168,6 +193,12 @@ export class DiscoveryEngine {
       // Filter results based on options
       const filteredResults = this.filterResults(scoredResults, options);
 
+      // Enhance results with web scraping if enabled
+      let scrapedContent: ScrapedContent[] = [];
+      if (this.config.webScrapingEnabled && options.enableWebScraping !== false) {
+        scrapedContent = await this.enhanceResultsWithWebScraping(filteredResults, options);
+      }
+
       // Cache the results
       if (this.config.cacheEnabled && filteredResults.length > 0) {
         await this.cacheManager.set(query, filteredResults);
@@ -177,7 +208,8 @@ export class DiscoveryEngine {
       logger.info('MCP discovery completed', { 
         query, 
         resultsFound: filteredResults.length,
-        searchTime 
+        searchTime,
+        scrapedContentCount: scrapedContent.length
       });
 
       return {
@@ -185,7 +217,8 @@ export class DiscoveryEngine {
         results: filteredResults,
         totalFound: filteredResults.length,
         searchTime,
-        source: 'perplexity'
+        source: 'perplexity',
+        scrapedContent
       };
 
     } catch (error) {
@@ -422,6 +455,77 @@ export class DiscoveryEngine {
   }
 
   /**
+   * Enhances MCP results with web scraping
+   */
+  private async enhanceResultsWithWebScraping(
+    results: MCPDiscoveryResult[], 
+    options: DiscoverySearchOptions
+  ): Promise<ScrapedContent[]> {
+    if (!this.config.webScrapingEnabled || results.length === 0) {
+      return [];
+    }
+
+    logger.info('Enhancing results with web scraping', { resultCount: results.length });
+
+    // Create scraping targets from results
+    const targets: ScrapingTarget[] = [];
+    
+    for (const result of results) {
+      // Add GitHub README if available
+      if (result.repository_url && result.repository_url.includes('github.com')) {
+        targets.push({
+          url: result.repository_url,
+          type: 'github_readme',
+          priority: 'high'
+        });
+      }
+
+      // Add NPM package docs if available
+      if (result.npm_package) {
+        targets.push({
+          url: `https://www.npmjs.com/package/${result.npm_package}`,
+          type: 'npm_docs',
+          priority: 'medium'
+        });
+      }
+
+      // Add documentation URL if available
+      if (result.documentation_url && result.documentation_url !== result.repository_url) {
+        targets.push({
+          url: result.documentation_url,
+          type: 'documentation',
+          priority: 'medium'
+        });
+      }
+    }
+
+    // Limit the number of targets to scrape
+    const maxTargets = Math.min(targets.length, 10);
+    const prioritizedTargets = targets
+      .sort((a, b) => {
+        const priorityOrder = { high: 3, medium: 2, low: 1 };
+        return priorityOrder[b.priority] - priorityOrder[a.priority];
+      })
+      .slice(0, maxTargets);
+
+    try {
+      const scrapedContent = await this.webScraper.scrapeMultipleUrls(prioritizedTargets);
+      
+      logger.info('Web scraping completed', { 
+        targetsScraped: prioritizedTargets.length,
+        successfulScrapes: scrapedContent.filter(c => c.success).length
+      });
+
+      return scrapedContent;
+    } catch (error) {
+      logger.error('Web scraping failed', { 
+        error: error instanceof Error ? error.message : 'Unknown error' 
+      });
+      return [];
+    }
+  }
+
+  /**
    * Filters results based on search options
    */
   private filterResults(
@@ -586,3 +690,4 @@ export * from './cache-manager';
 export * from './fallback-manager';
 export * from './query-templates';
 export * from './query-constructor';
+export * from './web-scraper';
