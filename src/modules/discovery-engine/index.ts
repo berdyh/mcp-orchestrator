@@ -13,6 +13,7 @@ import { ConfidenceScorer } from './confidence-scorer';
 import { RateLimiter } from './rate-limiter';
 import { CacheManager } from './cache-manager';
 import { FallbackManager } from './fallback-manager';
+import { QueryConstructor, type QueryContext, type ConstructedQuery } from './query-constructor';
 
 const logger = createLogger('discovery-engine');
 
@@ -39,6 +40,8 @@ export interface DiscoverySearchOptions {
   minConfidenceScore?: number;
   categories?: string[];
   excludeCategories?: string[];
+  searchDepth?: 'quick' | 'thorough';
+  useIntelligentQueries?: boolean;
 }
 
 /**
@@ -51,6 +54,11 @@ export interface DiscoveryResult {
   searchTime: number;
   source: 'perplexity' | 'cache' | 'fallback';
   error?: string;
+  queryMetadata?: {
+    queriesUsed: ConstructedQuery[];
+    intelligentQueries: boolean;
+    averageConfidence: number;
+  };
 }
 
 /**
@@ -63,6 +71,7 @@ export class DiscoveryEngine {
   private rateLimiter: RateLimiter;
   private cacheManager: CacheManager;
   private fallbackManager: FallbackManager;
+  private queryConstructor: QueryConstructor;
   private config: DiscoveryEngineConfig;
 
   constructor(config: DiscoveryEngineConfig = {}) {
@@ -96,6 +105,7 @@ export class DiscoveryEngine {
       enablePredefinedRegistry: this.config.fallbackEnabled!,
       enableAlternativeSources: this.config.fallbackEnabled!
     });
+    this.queryConstructor = new QueryConstructor();
 
     logger.info('Discovery engine initialized', {
       rateLimitPerMinute: this.config.rateLimitPerMinute,
@@ -234,6 +244,159 @@ export class DiscoveryEngine {
   }
 
   /**
+   * Discovers MCP servers using intelligent query construction
+   */
+  async discoverWithIntelligentQueries(
+    toolNames: string[],
+    technologies: string[],
+    options: DiscoverySearchOptions = {}
+  ): Promise<DiscoveryResult> {
+    const startTime = Date.now();
+    
+    try {
+      logger.info('Starting intelligent MCP discovery', { toolNames, technologies, options });
+
+      // Construct intelligent queries
+      const queryContext: QueryContext = {
+        toolNames,
+        categories: options.categories || [],
+        technologies,
+        searchDepth: options.searchDepth || 'thorough',
+        userPreferences: {
+          ...(options.includeNpmPackages && { preferredSources: ['npm'] }),
+          ...(options.excludeCategories && { excludeCategories: options.excludeCategories }),
+          ...(options.minConfidenceScore !== undefined && { minConfidence: options.minConfidenceScore })
+        }
+      };
+
+      const constructedQueries = await this.queryConstructor.constructQueries(queryContext);
+      
+      if (constructedQueries.length === 0) {
+        throw new Error('No queries could be constructed');
+      }
+
+      // Execute searches for each constructed query
+      const allResults: MCPDiscoveryResult[] = [];
+      const successfulQueries: ConstructedQuery[] = [];
+
+      for (const constructedQuery of constructedQueries) {
+        try {
+          // Check cache first
+          if (this.config.cacheEnabled) {
+            const cachedResult = await this.cacheManager.get(constructedQuery.query);
+            if (cachedResult) {
+              logger.debug('Using cached result for intelligent query', { query: constructedQuery.query });
+              allResults.push(...cachedResult);
+              successfulQueries.push(constructedQuery);
+              continue;
+            }
+          }
+
+          // Apply rate limiting
+          await this.rateLimiter.waitForSlot();
+
+          // Search using Perplexity API
+          const searchResult = await this.perplexityClient.search(constructedQuery.query);
+          
+          if (searchResult.success && searchResult.data) {
+            // Parse the response
+            const parsedResults = await this.parser.parseResponse(searchResult.data);
+            
+            // Score the results
+            const scoredResults = await this.scorer.scoreResults(parsedResults, constructedQuery.query);
+            
+            // Filter results based on options
+            const filteredResults = this.filterResults(scoredResults, options);
+
+            allResults.push(...filteredResults);
+            successfulQueries.push(constructedQuery);
+
+            // Cache the results
+            if (this.config.cacheEnabled && filteredResults.length > 0) {
+              await this.cacheManager.set(constructedQuery.query, filteredResults);
+            }
+
+            logger.debug('Intelligent query executed successfully', { 
+              query: constructedQuery.query,
+              resultsFound: filteredResults.length,
+              confidence: constructedQuery.confidence
+            });
+          } else {
+            logger.warn('Intelligent query failed', { 
+              query: constructedQuery.query,
+              error: searchResult.error
+            });
+          }
+        } catch (error) {
+          logger.error('Error executing intelligent query', { 
+            query: constructedQuery.query,
+            error: error instanceof Error ? error.message : 'Unknown error'
+          });
+        }
+      }
+
+      // Remove duplicates and sort by confidence
+      const uniqueResults = this.deduplicateResults(allResults);
+      const sortedResults = uniqueResults.sort((a, b) => b.confidence_score - a.confidence_score);
+
+      // Apply final filtering and limits
+      const finalResults = this.filterResults(sortedResults, options);
+
+      const searchTime = Date.now() - startTime;
+      const averageConfidence = successfulQueries.length > 0 
+        ? successfulQueries.reduce((sum, q) => sum + q.confidence, 0) / successfulQueries.length
+        : 0;
+
+      logger.info('Intelligent MCP discovery completed', { 
+        toolNames,
+        technologies,
+        queriesUsed: successfulQueries.length,
+        resultsFound: finalResults.length,
+        searchTime,
+        averageConfidence
+      });
+
+      return {
+        success: true,
+        results: finalResults,
+        totalFound: finalResults.length,
+        searchTime,
+        source: 'perplexity',
+        queryMetadata: {
+          queriesUsed: successfulQueries,
+          intelligentQueries: true,
+          averageConfidence
+        }
+      };
+
+    } catch (error) {
+      logger.error('Intelligent MCP discovery failed', { 
+        toolNames,
+        technologies,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+
+      // Try fallback if enabled
+      if (this.config.fallbackEnabled) {
+        return await this.tryFallbackDiscovery(
+          `MCP servers for ${toolNames.join(' ')} ${technologies.join(' ')}`,
+          options,
+          startTime
+        );
+      }
+
+      return {
+        success: false,
+        results: [],
+        totalFound: 0,
+        searchTime: Date.now() - startTime,
+        source: 'perplexity',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      };
+    }
+  }
+
+  /**
    * Gets discovery statistics
    */
   async getDiscoveryStats(): Promise<{
@@ -307,6 +470,24 @@ export class DiscoveryEngine {
     }
 
     return filtered;
+  }
+
+  /**
+   * Removes duplicate results based on MCP name and repository URL
+   */
+  private deduplicateResults(results: MCPDiscoveryResult[]): MCPDiscoveryResult[] {
+    const seen = new Set<string>();
+    const uniqueResults: MCPDiscoveryResult[] = [];
+
+    for (const result of results) {
+      const key = `${result.mcp_name}|${result.repository_url}`;
+      if (!seen.has(key)) {
+        seen.add(key);
+        uniqueResults.push(result);
+      }
+    }
+
+    return uniqueResults;
   }
 
   /**
@@ -404,3 +585,4 @@ export * from './rate-limiter';
 export * from './cache-manager';
 export * from './fallback-manager';
 export * from './query-templates';
+export * from './query-constructor';
