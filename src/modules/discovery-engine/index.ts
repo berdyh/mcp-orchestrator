@@ -539,13 +539,33 @@ export class DiscoveryEngine {
       filtered = filtered.filter(r => r.confidence_score >= options.minConfidenceScore!);
     }
 
-    // Filter by categories
+    // Filter by categories (more flexible matching)
     if (options.categories && options.categories.length > 0) {
       filtered = filtered.filter(r => 
-        options.categories!.some(cat => 
-          r.mcp_name.toLowerCase().includes(cat.toLowerCase()) ||
-          r.setup_instructions.toLowerCase().includes(cat.toLowerCase())
-        )
+        options.categories!.some(cat => {
+          const catLower = cat.toLowerCase();
+          const nameLower = r.mcp_name.toLowerCase();
+          const instructionsLower = r.setup_instructions.toLowerCase();
+          const categoryLower = (r.category || '').toLowerCase();
+          
+          // More flexible matching - check if category appears anywhere in the content
+          return nameLower.includes(catLower) ||
+                 instructionsLower.includes(catLower) ||
+                 categoryLower.includes(catLower) ||
+                 // Also check for related terms
+                 (catLower === 'development' && (
+                   nameLower.includes('dev') || 
+                   nameLower.includes('tool') ||
+                   nameLower.includes('cli') ||
+                   instructionsLower.includes('npm') ||
+                   instructionsLower.includes('install')
+                 )) ||
+                 (catLower === 'filesystem' && (
+                   nameLower.includes('file') ||
+                   nameLower.includes('fs') ||
+                   instructionsLower.includes('file')
+                 ));
+        })
       );
     }
 
@@ -641,7 +661,9 @@ export class DiscoveryEngine {
 /**
  * Default discovery engine instance
  */
-export const defaultDiscoveryEngine = new DiscoveryEngine();
+export const defaultDiscoveryEngine = new DiscoveryEngine({
+  ...(process.env.PERPLEXITY_API_KEY && { perplexityApiKey: process.env.PERPLEXITY_API_KEY })
+});
 
 /**
  * Utility functions for discovery

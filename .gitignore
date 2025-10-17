@@ -173,3 +173,17 @@ audit.log
 security.log
 credential-audit.log
 *.audit.log
+.vercel
+
+
+# Report files
+*REPORT.md
+TEST_REPORT.md
+FINAL_TEST_REPORT.md
+
+# Development test files
+test-*.js
+run-*.js
+tests/integration/
+tests/test-utils.ts
+server.log

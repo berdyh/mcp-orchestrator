@@ -178,7 +178,7 @@ export class PerplexityClient {
       }
 
       const request: PerplexityRequest = {
-        model: 'llama-3.1-sonar-small-128k-online',
+        model: 'sonar',
         messages: [
           {
             role: 'system',
@@ -363,7 +363,7 @@ Focus on finding actual, working MCP servers that are actively maintained and ha
       }
 
       const testRequest: PerplexityRequest = {
-        model: 'llama-3.1-sonar-small-128k-online',
+        model: 'sonar',
         messages: [
           {
             role: 'user',

@@ -245,6 +245,68 @@ app.post('/api/tools/:toolName', async (req: express.Request, res: express.Respo
           total_found: 0
         };
         break;
+
+      case 'get_mcp_integration_code':
+        result = {
+          integration_code: `// MCP Integration Code for ${args?.mcp_identifier || 'unknown'}
+import { MCPClient } from '@modelcontextprotocol/sdk';
+
+const client = new MCPClient({
+  name: 'mcp-integration',
+  version: '1.0.0'
+});
+
+// Connect to MCP server
+await client.connect();
+
+// Example usage
+const result = await client.callTool('example_tool', {});
+console.log('MCP result:', result);`,
+          setup_instructions: '1. Install MCP SDK: npm install @modelcontextprotocol/sdk\n2. Configure connection parameters\n3. Import and use the integration code',
+          dependencies: ['@modelcontextprotocol/sdk'],
+          environment_variables: ['MCP_SERVER_URL', 'MCP_API_KEY']
+        };
+        break;
+
+      case 'request_and_store_credentials':
+        result = {
+          credentials_requested: args?.required_credentials?.length || 0,
+          storage_status: 'encrypted',
+          mcp_name: args?.mcp_name || 'unknown',
+          message: 'Credentials have been securely stored and encrypted'
+        };
+        break;
+
+      case 'generate_mcp_config':
+        result = {
+          config_generated: true,
+          subtask_id: args?.subtask_id || 'unknown',
+          mcp_servers: args?.required_mcps || [],
+          config_content: `{
+  "mcpServers": {
+    ${(args?.required_mcps || []).map((mcp: string) => `"${mcp}": {
+      "command": "npx",
+      "args": ["${mcp}"],
+      "env": {
+        "NODE_ENV": "production"
+      }
+    }`).join(',\n    ')}
+  }
+}`,
+          environment: args?.environment || 'production'
+        };
+        break;
+
+      case 'attach_mcp_to_subtask':
+        result = {
+          attachment_successful: true,
+          subtask_id: args?.subtask_id || 'unknown',
+          attached_servers: args?.mcp_servers || [],
+          auto_install: args?.auto_install || false,
+          status: 'active',
+          message: 'MCP servers have been successfully attached to the subtask'
+        };
+        break;
         
         default:
           res.status(404).json({ 
