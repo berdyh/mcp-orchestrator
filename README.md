@@ -222,6 +222,7 @@ The MCP Meta-Orchestrator can be deployed remotely to serve external AI platform
 1. **Install Vercel CLI**
    ```bash
    npm i -g vercel
+   vercel login
    ```
 
 2. **Deploy**
