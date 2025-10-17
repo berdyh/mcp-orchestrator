@@ -139,7 +139,7 @@ export async function analyzeTaskPlan(input: unknown): Promise<TaskAnalysisResul
     // Combine all text for analysis
     const allText = [
       taskInput.task_description,
-      ...taskInput.task_list.map(task => `${task.description} ${task.dependencies.join(' ')}`),
+      ...taskInput.task_list.map(task => `${task.description} ${(task.dependencies || []).join(' ')}`),
       taskInput.project_context ?? ''
     ].join(' ').toLowerCase();
     
@@ -195,7 +195,7 @@ function detectTools(allText: string, taskList: TaskPlanInput['task_list']): Det
     
     // Check specific subtasks
     for (const task of taskList) {
-      const taskText = `${task.description} ${task.dependencies.join(' ')}`.toLowerCase();
+      const taskText = `${task.description} ${(task.dependencies || []).join(' ')}`.toLowerCase();
       
       for (const keyword of config.keywords) {
         if (taskText.includes(keyword.toLowerCase())) {

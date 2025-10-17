@@ -74,7 +74,7 @@ export interface TaskPlanInput {
   task_list: Array<{
     id: string;
     description: string;
-    dependencies: string[];
+    dependencies?: string[] | undefined;
   }>;
   project_context?: string;
 }
@@ -143,7 +143,7 @@ export const TaskPlanInputSchema = z.object({
   task_list: z.array(z.object({
     id: z.string().min(1),
     description: z.string().min(1),
-    dependencies: z.array(z.string()),
+    dependencies: z.array(z.string()).optional().default([]),
   })),
   project_context: z.string().optional(),
 });
