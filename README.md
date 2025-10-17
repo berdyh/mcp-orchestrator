@@ -190,9 +190,9 @@ npm run test:watch
 const analysis = await analyze_task_plan({
   task_description: "Build a React app with PostgreSQL backend",
   task_list: [
-    { id: "1", description: "Initialize npm project", dependencies: ["npm"] },
-    { id: "2", description: "Set up React components", dependencies: ["npm", "react"] },
-    { id: "3", description: "Configure PostgreSQL database", dependencies: ["postgresql"] }
+    { id: "1", description: "Initialize npm project" },
+    { id: "2", description: "Set up React components", dependencies: ["1"] },
+    { id: "3", description: "Configure PostgreSQL database", dependencies: ["1"] }
   ]
 });
 
@@ -228,7 +228,6 @@ The MCP Meta-Orchestrator can be deployed remotely to serve external AI platform
 2. **Deploy**
    ```bash
    npm run build
-   vercel --prod
    ```
 
 3. **Set Environment Variables**
@@ -334,8 +333,7 @@ curl -X POST https://your-domain.com/api/tools/analyze_task_plan \
     "task_list": [
       {
         "id": "scraper-1",
-        "description": "Scrape product data from e-commerce site",
-        "dependencies": []
+        "description": "Scrape product data from e-commerce site"
       }
     ]
   }'
