@@ -325,11 +325,19 @@ export class DiscoveryEngine {
             }
           }
 
-          // Apply rate limiting
-          await this.rateLimiter.waitForSlot();
+          // Apply rate limiting with timeout
+          await Promise.race([
+            this.rateLimiter.waitForSlot(),
+            new Promise((_, reject) => setTimeout(() => reject(new Error('Rate limit timeout')), 5000))
+          ]);
 
-          // Search using Perplexity API
-          const searchResult = await this.perplexityClient.search(constructedQuery.query);
+          // Search using Perplexity API with timeout
+          const searchPromise = this.perplexityClient.search(constructedQuery.query);
+          const searchTimeout = new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Perplexity API timeout')), 15000)
+          );
+          
+          const searchResult = await Promise.race([searchPromise, searchTimeout]) as any;
           
           if (searchResult.success && searchResult.data) {
             // Parse the response

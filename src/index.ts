@@ -7,6 +7,10 @@
  * It initializes the MCP server and registers all available tools.
  */
 
+// Load environment variables first
+import { config } from 'dotenv';
+config();
+
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { 

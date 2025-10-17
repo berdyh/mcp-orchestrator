@@ -187,3 +187,5 @@ run-*.js
 tests/integration/
 tests/test-utils.ts
 server.log
+
+.fuse*
